@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d1612">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Fairway — A Field Instrument</title>
+<style>
+:root {
+  /* Field instrument palette — calibrated for sunlight readability */
+  --bg: #0a120d;
+  --bg-2: #131e17;
+  --surface: #1a2a20;
+  --surface-2: #233527;
+  --line: #2e4534;
+  --line-2: #3d5a44;
+  --ink: #f3efde;
+  --ink-2: #c5c4b0;
+  --ink-3: #8e9684;
+  --primary: #9bc34a;
+  --primary-deep: #6b8a2a;
+  --accent: #d9a544;
+  --warn: #d97f3a;
+  --bad: #c84545;
+  --good: #6ec24a;
+  --selected-glow: rgba(155, 195, 74, 0.18);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--ink);
+  font-family: system-ui, -apple-system, "Helvetica Neue", sans-serif;
+  font-size: 18px; line-height: 1.4;
+  overscroll-behavior: none;
+  -webkit-user-select: none; user-select: none;
+}
+
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+#app {
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
+  max-width: 720px; margin: 0 auto;
+  background: var(--bg);
+}
+
+/* === HEADER === */
+.app-header {
+  padding: 12px 18px 10px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  position: relative;
+}
+.app-header::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -1px;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--primary-deep), transparent);
+  opacity: 0.4;
+}
+.app-title {
+  font-family: "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+  font-size: 22px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--ink); margin: 0;
+}
+.app-subtitle {
+  font-family: "Charter", "Iowan Old Style", Georgia, serif;
+  font-size: 11px; font-style: italic; color: var(--ink-3);
+  letter-spacing: 1px; text-transform: uppercase; margin-top: 2px;
+}
+
+/* === MAIN AREA === */
+main {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+}
+
+.view { display: none; padding: 16px 14px 24px; }
+.view.active { display: block; }
+
+/* === BOTTOM NAV === */
+nav.tabs {
+  display: flex;
+  border-top: 1px solid var(--line);
+  background: var(--bg-2);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  flex: 1;
+  background: none; border: none; outline: none;
+  color: var(--ink-3); font-size: 13px;
+  padding: 14px 4px 12px; cursor: pointer;
+  font-family: inherit; font-weight: 600;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border-top: 3px solid transparent;
+  transition: color 0.15s;
+}
+.tab-btn .tab-icon { font-size: 24px; line-height: 1; }
+.tab-btn.active { color: var(--primary); border-top-color: var(--primary); background: var(--surface); }
+
+/* === TYPOGRAPHY === */
+h2.section-title {
+  font-family: "Charter", "Iowan Old Style", Georgia, serif;
+  font-size: 26px; font-weight: 700; color: var(--ink);
+  margin: 0 0 4px;
+}
+.section-sub {
+  font-size: 13px; color: var(--ink-3); letter-spacing: 0.8px;
+  text-transform: uppercase; font-weight: 600; margin-bottom: 18px;
+}
+h3.block-title {
+  font-family: "Charter", Georgia, serif;
+  font-size: 19px; font-weight: 700; margin: 22px 0 10px;
+  color: var(--ink);
+}
+.label {
+  font-size: 14px; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 700; margin: 14px 0 8px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+
+/* === CARDS === */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.card.flush { padding: 0; overflow: hidden; }
+.card-title {
+  font-family: "Charter", Georgia, serif;
+  font-size: 17px; font-weight: 700; margin: 0 0 8px;
+}
+
+/* === BUTTONS === */
+button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-2); color: var(--ink);
+  border: 1px solid var(--line-2); border-radius: 12px;
+  padding: 16px 18px; font-size: 17px; font-weight: 600;
+  min-height: 56px; transition: all 0.1s;
+  font-family: inherit;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: var(--primary); color: #0e1a0c;
+  border-color: var(--primary);
+  box-shadow: 0 2px 0 var(--primary-deep);
+}
+.btn-primary:active { box-shadow: 0 0 0 var(--primary-deep); transform: translateY(2px); }
+.btn-full { width: 100%; }
+.btn-big {
+  min-height: 72px; font-size: 22px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.btn-ghost { background: transparent; border-color: var(--line); }
+.btn-danger { color: var(--bad); border-color: rgba(200, 69, 69, 0.4); background: transparent; }
+
+/* === CHOICE GROUPS (the heart of the input system) === */
+.choices {
+  display: grid; gap: 8px;
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
+}
+.choice {
+  background: var(--surface-2);
+  border: 2px solid var(--line);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 14px 8px;
+  font-size: 17px; font-weight: 700;
+  min-height: 72px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; text-align: center;
+  font-family: inherit;
+  transition: all 0.12s ease;
+  position: relative;
+}
+.choice:active { transform: scale(0.96); }
+.choice .sub {
+  font-size: 12px; font-weight: 600; color: var(--ink-3);
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.choice.selected {
+  background: var(--selected-glow);
+  border-color: var(--primary);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.choice.selected .sub { color: var(--primary); }
+.choice.danger.selected { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); background: rgba(200,69,69,0.1); }
+.choice.danger.selected .sub { color: var(--bad); }
+.choice.warn.selected { border-color: var(--warn); box-shadow: inset 0 0 0 1px var(--warn); background: rgba(217,127,58,0.1); }
+.choice.warn.selected .sub { color: var(--warn); }
+
+/* === HOLE NAV BAR === */
+.hole-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 8px; margin-bottom: 14px;
+}
+.hole-info {
+  text-align: center; flex: 1;
+}
+.hole-number {
+  font-family: "Charter", Georgia, serif;
+  font-size: 32px; font-weight: 800; line-height: 1;
+  color: var(--ink);
+}
+.hole-par {
+  font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 2px; font-weight: 700;
+}
+.par-edit {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  border-radius: 8px; padding: 4px 10px; cursor: pointer;
+  font-size: 11px; font-weight: 700; color: var(--ink-2);
+}
+.par-edit:active { background: var(--line); }
+.hole-nav-btn {
+  width: 52px; height: 52px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink); font-size: 24px;
+}
+.hole-nav-btn:active { background: var(--line); }
+.hole-nav-btn:disabled { opacity: 0.3; }
+
+/* === LIVE STATS STRIP === */
+.live-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.live-stat {
+  padding: 10px 8px; text-align: center;
+  border-right: 1px solid var(--line);
+}
+.live-stat:last-child { border-right: none; }
+.live-stat .v {
+  font-family: "Charter", Georgia, serif;
+  font-size: 22px; font-weight: 800; line-height: 1;
+  color: var(--ink);
+}
+.live-stat .v.good { color: var(--good); }
+.live-stat .v.bad { color: var(--bad); }
+.live-stat .l {
+  font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--ink-3); margin-top: 4px; font-weight: 700;
+}
+
+/* === BIG TI DISPLAY === */
+.ti-display {
+  text-align: center; padding: 26px 16px 22px;
+  background:
+    radial-gradient(ellipse at top, rgba(155,195,74,0.08), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  position: relative; overflow: hidden;
+}
+.ti-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 700; margin-bottom: 6px;
+}
+.ti-value {
+  font-family: "Charter", Georgia, serif;
+  font-size: 78px; font-weight: 800; line-height: 1;
+  color: var(--ink);
+}
+.ti-value.none { font-size: 32px; color: var(--ink-3); font-style: italic; font-weight: 400; }
+.ti-trend {
+  font-size: 14px; color: var(--ink-2);
+  margin-top: 8px; font-weight: 600;
+}
+.ti-trend .up { color: var(--good); }
+.ti-trend .down { color: var(--bad); }
+.ti-explainer {
+  font-family: Georgia, serif; font-style: italic;
+  font-size: 13px; color: var(--ink-3);
+  margin-top: 8px; padding: 0 12px;
+}
+
+/* === SPARKLINE === */
+.spark-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 16px;
+}
+.spark {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px; text-align: center;
+}
+.spark .v {
+  font-family: "Charter", Georgia, serif;
+  font-size: 28px; font-weight: 800; line-height: 1;
+}
+.spark .l {
+  font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 700; margin-top: 4px;
+}
+.spark svg { display: block; width: 100%; height: 36px; margin-top: 8px; }
+
+/* === CHART === */
+.chart-wrap {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.chart-wrap h4 {
+  margin: 0 0 4px;
+  font-family: "Charter", Georgia, serif;
+  font-size: 16px; font-weight: 700;
+}
+.chart-wrap .chart-sub {
+  font-size: 11px; color: var(--ink-3);
+  letter-spacing: 0.8px; text-transform: uppercase;
+  margin-bottom: 12px; font-weight: 600;
+}
+.chart-wrap svg { width: 100%; height: 180px; display: block; }
+.chart-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--ink-3); font-style: italic; font-family: Georgia, serif;
+}
+
+/* === LIST ITEMS === */
+.list-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
+}
+.list-item .title {
+  font-weight: 700; font-size: 16px;
+}
+.list-item .meta {
+  font-size: 12px; color: var(--ink-3);
+  margin-top: 2px;
+}
+.list-item .right {
+  font-family: "Charter", Georgia, serif;
+  font-weight: 800; font-size: 22px;
+  color: var(--primary);
+  text-align: right; min-width: 60px;
+}
+.list-item .right .sub {
+  font-family: system-ui, sans-serif;
+  font-size: 10px; color: var(--ink-3); display: block;
+  letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* === MODAL === */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  padding: 22px;
+  max-width: 420px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal h3 {
+  font-family: "Charter", Georgia, serif;
+  margin: 0 0 12px; font-size: 22px;
+}
+
+/* === FORM === */
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-3); margin-bottom: 6px;
+}
+.field input[type="text"],
+.field input[type="number"],
+.field textarea,
+.field select {
+  width: 100%; padding: 14px 12px;
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  border-radius: 10px; color: var(--ink);
+  font-size: 18px; font-family: inherit;
+  outline: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--primary);
+}
+
+/* === EMPTY STATES === */
+.empty {
+  text-align: center; padding: 40px 24px;
+  color: var(--ink-3);
+}
+.empty .icon {
+  font-size: 48px; margin-bottom: 12px; opacity: 0.5;
+}
+.empty .title {
+  font-family: "Charter", Georgia, serif;
+  font-size: 20px; color: var(--ink-2);
+  margin-bottom: 8px; font-weight: 700;
+}
+.empty p {
+  font-family: Georgia, serif; font-style: italic;
+  font-size: 14px; max-width: 320px; margin: 0 auto 18px;
+  line-height: 1.5;
+}
+
+/* === PHILOSOPHY CALLOUT === */
+.callout {
+  font-family: "Charter", Georgia, serif;
+  font-style: italic; font-size: 14px;
+  color: var(--ink-2);
+  border-left: 3px solid var(--primary-deep);
+  padding: 4px 0 4px 14px;
+  margin: 16px 0;
+  line-height: 1.55;
+}
+
+/* === END OF ROUND PANEL === */
+.round-summary { padding: 6px 0; }
+.round-summary .big-num {
+  font-family: "Charter", Georgia, serif;
+  font-size: 72px; font-weight: 800; line-height: 1;
+  text-align: center;
+  color: var(--ink);
+}
+.round-summary .grinder {
+  font-family: "Charter", Georgia, serif;
+  font-size: 36px; font-weight: 800;
+  text-align: center; margin: 14px 0 4px;
+}
+.round-summary .grinder.pos { color: var(--good); }
+.round-summary .grinder.neg { color: var(--bad); }
+.round-summary .summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-top: 14px;
+}
+.round-summary .summary-stat {
+  background: var(--bg);
+  padding: 10px; border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--line);
+}
+.round-summary .summary-stat .v {
+  font-family: "Charter", Georgia, serif; font-weight: 800;
+  font-size: 22px;
+}
+.round-summary .summary-stat .l {
+  font-size: 10px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--ink-3);
+  font-weight: 700; margin-top: 2px;
+}
+
+/* === HOLE COMPLETION PROGRESS DOTS === */
+.hole-progress {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin: 10px 0 4px; justify-content: center;
+}
+.hole-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--line); border: 1px solid var(--line-2);
+}
+.hole-dot.done { background: var(--primary); border-color: var(--primary); }
+.hole-dot.current { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 2px rgba(217,165,68,0.3); }
+
+/* === PRACTICE === */
+.cat-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.cat-tile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.cat-tile .ic { font-size: 28px; }
+.cat-tile .t {
+  font-family: "Charter", Georgia, serif;
+  font-size: 17px; font-weight: 700;
+  margin-top: 6px; color: var(--ink);
+}
+.cat-tile .s {
+  font-size: 11px; color: var(--ink-3);
+  letter-spacing: 0.8px; text-transform: uppercase;
+  margin-top: 4px; font-weight: 600;
+}
+
+/* === TINY UTILITIES === */
+.row { display: flex; gap: 10px; align-items: center; }
+.row > * { flex: 1; }
+.center { text-align: center; }
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mb-0 { margin-bottom: 0; }
+.muted { color: var(--ink-3); }
+.tiny { font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; color: var(--ink-3); }
+
+/* iOS notch */
+@supports (padding: max(0px)) {
+  .app-header { padding-top: max(12px, env(safe-area-inset-top)); }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="app-header">
+    <h1 class="app-title" id="header-title">Fairway</h1>
+    <div class="app-subtitle" id="header-sub">A field instrument for the grinder</div>
+  </header>
+
+  <main>
+    <!-- ============================ ROUND TAB ============================ -->
+    <section class="view active" id="view-round"></section>
+
+    <!-- ============================ PRACTICE TAB ============================ -->
+    <section class="view" id="view-practice"></section>
+
+    <!-- ============================ STATS TAB ============================ -->
+    <section class="view" id="view-stats"></section>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="round"><span class="tab-icon">⛳</span><span>Round</span></button>
+    <button class="tab-btn" data-tab="practice"><span class="tab-icon">◎</span><span>Practice</span></button>
+    <button class="tab-btn" data-tab="stats"><span class="tab-icon">▲</span><span>Stats</span></button>
+  </nav>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+'use strict';
+
+// =====================================================================
+// STORAGE / STATE
+// =====================================================================
+const STORAGE_KEY = 'fairway_v1';
+
+function defaults() {
+  return {
+    rounds: [],
+    practice: [],
+    currentRound: null,
+    courses: [],
+    baseline: 84,            // baseline strokes per 18 holes (editable)
+    settings: { defaultHoles: 18 }
+  };
+}
+
+let STATE = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaults();
+    const parsed = JSON.parse(raw);
+    return { ...defaults(), ...parsed };
+  } catch(e) {
+    return defaults();
+  }
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }
+  catch(e) { console.error('save failed', e); }
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+// =====================================================================
+// HOLE METRICS — derived from inputs
+// =====================================================================
+function blankHole(par) {
+  return {
+    par: par || 4,
+    score: null,           // 'birdie-better' | 'par' | 'bogey' | 'double' | 'triple' | 'worse'
+    rawStrokes: null,      // actual strokes (computed or manual for worse)
+    fairway: null,         // 'hit' | 'safe' | 'trouble' | null (par 3 = null)
+    green: null,           // 'hit' | 'short' | 'long' | 'short-side'
+    putts: null,           // 1, 2, 3, 4
+    decision: null,        // 'safe' | 'attacked'
+    penalty: false         // optional flag
+  };
+}
+
+function scoreToRel(score, manualWorse) {
+  if (score === 'birdie-better') return -1;
+  if (score === 'par') return 0;
+  if (score === 'bogey') return 1;
+  if (score === 'double') return 2;
+  if (score === 'triple') return 3;
+  if (score === 'worse') return (manualWorse || 4);
+  return null;
+}
+
+function holeStrokes(h) {
+  const rel = scoreToRel(h.score, h.rawStrokes ? (h.rawStrokes - h.par) : null);
+  if (rel === null) return null;
+  return h.par + rel;
+}
+
+function isComplete(h) {
+  // A hole is "complete enough to count" when score is recorded
+  return h.score !== null;
+}
+
+function isFullyTagged(h) {
+  // Fully tagged: score, putts, green, decision, and fairway (if par 4/5)
+  if (!h.score) return false;
+  if (h.putts === null) return false;
+  if (h.green === null) return false;
+  if (h.decision === null) return false;
+  if (h.par > 3 && h.fairway === null) return false;
+  return true;
+}
+
+function holeRel(h) {
+  return scoreToRel(h.score, h.rawStrokes ? (h.rawStrokes - h.par) : null);
+}
+
+// Process Quality (derived) — 0..5 per hole
+function holeProcess(h) {
+  if (!isComplete(h)) return null;
+  let q = 5;
+  const rel = holeRel(h);
+  if (h.putts >= 3) q -= 1;
+  if (h.green === 'short-side' && rel >= 1) q -= 1;   // didn't ask the miss question
+  if (h.decision === 'attacked' && rel >= 2) q -= 1;  // ego shot, bad outcome
+  if (h.fairway === 'trouble' && rel >= 1) q -= 1;    // wrong side miss
+  if (h.penalty) q -= 1;
+  return Math.max(0, q);
+}
+
+// Grinder Score per hole
+function holeGrinder(h) {
+  if (!isComplete(h)) return 0;
+  let s = 0;
+  const rel = holeRel(h);
+
+  // Score line
+  if (rel <= 0) s += 3;
+  else if (rel === 1) s += 1;
+  else if (rel >= 2) s -= 3;
+
+  // Fairway (par 4/5 only)
+  if (h.par > 3) {
+    if (h.fairway === 'hit' || h.fairway === 'safe') s += 1;
+  }
+  // GIR
+  if (h.green === 'hit') s += 1;
+  // Scramble — missed green but made par or better
+  if (h.green !== 'hit' && h.green !== null && rel <= 0) s += 2;
+  // 3-putt
+  if (h.putts >= 3) s -= 2;
+  // Penalty
+  if (h.penalty) s -= 2;
+  // Short-sided
+  if (h.green === 'short-side') s -= 1;
+  // Ego shot
+  if (h.decision === 'attacked' && rel >= 2) s -= 2;
+  // Smart bogey
+  if (h.decision === 'safe' && rel === 1) s += 2;
+
+  return s;
+}
+
+// =====================================================================
+// ROUND-LEVEL METRICS
+// =====================================================================
+function roundTotalStrokes(r) {
+  return r.holes.reduce((sum, h) => sum + (holeStrokes(h) || 0), 0);
+}
+function roundTotalPar(r) {
+  return r.holes.reduce((s,h) => s + h.par, 0);
+}
+function roundProcessTotal(r) {
+  const done = r.holes.filter(isComplete);
+  return done.reduce((s,h) => s + (holeProcess(h) || 0), 0);
+}
+function roundProcessMax(r) {
+  return r.holes.filter(isComplete).length * 5;
+}
+function roundGrinderTotal(r) {
+  return r.holes.reduce((s,h) => s + holeGrinder(h), 0);
+}
+function roundDoubles(r) {
+  return r.holes.filter(h => holeRel(h) !== null && holeRel(h) >= 2).length;
+}
+function roundThreePutts(r) {
+  return r.holes.filter(h => h.putts !== null && h.putts >= 3).length;
+}
+function roundPenalties(r) {
+  return r.holes.filter(h => h.penalty).length;
+}
+function roundFIRPct(r) {
+  const eligible = r.holes.filter(h => h.par > 3 && h.fairway !== null);
+  if (!eligible.length) return null;
+  const hit = eligible.filter(h => h.fairway === 'hit' || h.fairway === 'safe').length;
+  return Math.round(hit / eligible.length * 100);
+}
+function roundGIRPct(r) {
+  const eligible = r.holes.filter(h => h.green !== null);
+  if (!eligible.length) return null;
+  const hit = eligible.filter(h => h.green === 'hit').length;
+  return Math.round(hit / eligible.length * 100);
+}
+function roundScramblePct(r) {
+  const eligible = r.holes.filter(h => h.green !== null && h.green !== 'hit');
+  if (!eligible.length) return null;
+  const saved = eligible.filter(h => holeRel(h) !== null && holeRel(h) <= 0).length;
+  return Math.round(saved / eligible.length * 100);
+}
+
+// =====================================================================
+// TRAJECTORY INDEX
+// =====================================================================
+function trajectoryIndex() {
+  const rounds = STATE.rounds.filter(r => r.holes.filter(isComplete).length >= (r.totalHoles || 18) * 0.5);
+  if (rounds.length < 3) return { value: null, need: 3 - rounds.length };
+
+  const recent = rounds.slice(-5);
+
+  // Process discipline (40%)
+  const procPcts = recent.map(r => {
+    const t = roundProcessTotal(r);
+    const m = roundProcessMax(r);
+    return m > 0 ? (t/m) * 100 : 50;
+  });
+  const procAvg = avg(procPcts);
+
+  // Damage control (40%): inverse of doubles + 3-putts + penalties per round
+  const dmgEvents = recent.map(r => roundDoubles(r) + roundThreePutts(r) + roundPenalties(r));
+  const dmgAvg = avg(dmgEvents);
+  const dmgScore = Math.max(0, Math.min(100, 100 - dmgAvg * 6));
+
+  // Stroke result (20%)
+  let strokeScore = 50;
+  if (STATE.baseline) {
+    const strokesAvg = avg(recent.map(r => {
+      const total = roundTotalStrokes(r);
+      const holes = r.holes.filter(isComplete).length || r.totalHoles;
+      return (total / holes) * 18; // normalize to 18-hole equivalent
+    }));
+    const diff = STATE.baseline - strokesAvg;
+    strokeScore = Math.max(0, Math.min(100, 50 + diff * 5));
+  }
+
+  const value = Math.round(0.4 * procAvg + 0.4 * dmgScore + 0.2 * strokeScore);
+  return { value, parts: { proc: Math.round(procAvg), dmg: Math.round(dmgScore), stroke: Math.round(strokeScore) }, basis: recent.length };
+}
+
+function trajectoryHistory() {
+  // Compute a TI value after every saved round (rolling window of up to 5 most recent)
+  const rounds = STATE.rounds.filter(r => r.holes.filter(isComplete).length >= (r.totalHoles || 18) * 0.5);
+  const history = [];
+  for (let i = 0; i < rounds.length; i++) {
+    const window = rounds.slice(Math.max(0, i-4), i+1);
+    if (window.length < 3) { history.push(null); continue; }
+    const procPcts = window.map(r => {
+      const t = roundProcessTotal(r); const m = roundProcessMax(r);
+      return m > 0 ? (t/m) * 100 : 50;
+    });
+    const procAvg = avg(procPcts);
+    const dmgAvg = avg(window.map(r => roundDoubles(r) + roundThreePutts(r) + roundPenalties(r)));
+    const dmgScore = Math.max(0, Math.min(100, 100 - dmgAvg * 6));
+    let strokeScore = 50;
+    if (STATE.baseline) {
+      const sAvg = avg(window.map(r => {
+        const total = roundTotalStrokes(r);
+        const holes = r.holes.filter(isComplete).length || r.totalHoles;
+        return (total / holes) * 18;
+      }));
+      strokeScore = Math.max(0, Math.min(100, 50 + (STATE.baseline - sAvg) * 5));
+    }
+    history.push(Math.round(0.4 * procAvg + 0.4 * dmgScore + 0.2 * strokeScore));
+  }
+  return history;
+}
+
+function avg(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+
+// =====================================================================
+// SVG CHART HELPERS — minimal, dependency-free
+// =====================================================================
+function lineChart(values, opts = {}) {
+  // values: array of numbers or nulls
+  const w = opts.width || 320, h = opts.height || 180;
+  const pad = { l: 26, r: 10, t: 10, b: 24 };
+  const innerW = w - pad.l - pad.r, innerH = h - pad.t - pad.b;
+  const valid = values.filter(v => v !== null);
+  if (!valid.length) return '<text x="50%" y="50%" fill="#8e9684" text-anchor="middle" font-family="Georgia,serif" font-style="italic">no data yet</text>';
+
+  const minV = opts.min !== undefined ? opts.min : Math.min(...valid);
+  const maxV = opts.max !== undefined ? opts.max : Math.max(...valid);
+  const range = maxV - minV || 1;
+
+  const pts = values.map((v, i) => {
+    if (v === null) return null;
+    const x = pad.l + (values.length === 1 ? innerW/2 : (i / (values.length - 1)) * innerW);
+    const y = pad.t + innerH - ((v - minV) / range) * innerH;
+    return { x, y, v, i };
+  }).filter(p => p);
+
+  // Build path
+  let d = '';
+  pts.forEach((p, i) => { d += (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1); });
+
+  // Y-axis ticks
+  const yTicks = [minV, (minV+maxV)/2, maxV];
+  const yLabels = yTicks.map(t => {
+    const y = pad.t + innerH - ((t - minV) / range) * innerH;
+    return `<text x="${pad.l - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="#8e9684" font-family="system-ui">${Math.round(t)}</text>
+            <line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#2e4534" stroke-dasharray="2,3" opacity="0.5"/>`;
+  }).join('');
+
+  // X-axis label
+  const xLabel = `<text x="${w/2}" y="${h-4}" text-anchor="middle" font-size="9" fill="#8e9684" font-family="system-ui" letter-spacing="1">${opts.xLabel || 'ROUNDS'}</text>`;
+
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    ${yLabels}
+    ${xLabel}
+    <path d="${d}" fill="none" stroke="${opts.color || '#9bc34a'}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${pts.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${opts.color || '#9bc34a'}" stroke="#0a120d" stroke-width="1.5"/>`).join('')}
+  </svg>`;
+}
+
+function barChart(values, labels, opts = {}) {
+  const w = opts.width || 320, h = opts.height || 180;
+  const pad = { l: 30, r: 10, t: 10, b: 30 };
+  const innerW = w - pad.l - pad.r, innerH = h - pad.t - pad.b;
+  if (!values.length) return '<text x="50%" y="50%" fill="#8e9684" text-anchor="middle" font-family="Georgia,serif" font-style="italic">no data yet</text>';
+
+  const minV = Math.min(0, ...values);
+  const maxV = Math.max(0, ...values);
+  const range = (maxV - minV) || 1;
+  const barW = innerW / values.length * 0.7;
+  const gap = innerW / values.length * 0.3;
+  const zeroY = pad.t + innerH - ((0 - minV) / range) * innerH;
+
+  // y-axis labels (just min, 0, max)
+  const yTicks = [minV, 0, maxV].filter((v,i,a) => a.indexOf(v) === i);
+  const yLabels = yTicks.map(t => {
+    const y = pad.t + innerH - ((t - minV) / range) * innerH;
+    return `<text x="${pad.l - 4}" y="${y + 4}" text-anchor="end" font-size="9" fill="#8e9684" font-family="system-ui">${Math.round(t)}</text>`;
+  }).join('');
+
+  const bars = values.map((v, i) => {
+    const x = pad.l + i * (innerW / values.length) + gap/2;
+    const valY = pad.t + innerH - ((v - minV) / range) * innerH;
+    const y = Math.min(valY, zeroY);
+    const height = Math.abs(valY - zeroY);
+    const color = v >= 0 ? (opts.posColor || '#9bc34a') : (opts.negColor || '#c84545');
+    const label = labels[i] != null ? `<text x="${x + barW/2}" y="${h-4}" text-anchor="middle" font-size="9" fill="#8e9684" font-family="system-ui">${labels[i]}</text>` : '';
+    return `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(1,height)}" fill="${color}" rx="2"/>${label}`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    ${yLabels}
+    <line x1="${pad.l}" y1="${zeroY}" x2="${w-pad.r}" y2="${zeroY}" stroke="#3d5a44" stroke-width="1"/>
+    ${bars}
+  </svg>`;
+}
+
+function sparkline(values, opts = {}) {
+  const w = 100, h = 36;
+  const valid = values.filter(v => v !== null);
+  if (valid.length < 2) return '<svg viewBox="0 0 100 36" xmlns="http://www.w3.org/2000/svg"></svg>';
+  const minV = Math.min(...valid), maxV = Math.max(...valid);
+  const range = (maxV - minV) || 1;
+  const pad = 3;
+  const pts = values.map((v,i) => {
+    if (v === null) return null;
+    const x = pad + (i / (values.length - 1)) * (w - pad*2);
+    const y = pad + (h - pad*2) - ((v - minV) / range) * (h - pad*2);
+    return { x, y };
+  }).filter(p => p);
+  let d = '';
+  pts.forEach((p,i) => { d += (i===0?'M':'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1); });
+  const color = opts.color || '#9bc34a';
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${pts.slice(-1).map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.5" fill="${color}"/>`).join('')}
+  </svg>`;
+}
+
+// =====================================================================
+// MODAL HELPERS
+// =====================================================================
+function openModal(html) {
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modal-bg').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+  document.getElementById('modal').innerHTML = '';
+}
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target.id === 'modal-bg') closeModal();
+});
+
+// =====================================================================
+// VIEW: ROUND
+// =====================================================================
+function renderRound() {
+  const view = document.getElementById('view-round');
+  if (!STATE.currentRound) {
+    view.innerHTML = renderRoundLanding();
+    attachLandingHandlers();
+  } else {
+    view.innerHTML = renderHoleEntry();
+    attachHoleHandlers();
+  }
+}
+
+function renderRoundLanding() {
+  const lastRound = STATE.rounds[STATE.rounds.length - 1];
+  let lastBit = '';
+  if (lastRound) {
+    const strokes = roundTotalStrokes(lastRound);
+    const par = roundTotalPar(lastRound);
+    const grind = roundGrinderTotal(lastRound);
+    const dt = new Date(lastRound.date);
+    lastBit = `
+      <h3 class="block-title">Last Round</h3>
+      <div class="list-item">
+        <div>
+          <div class="title">${lastRound.course || 'Untitled'}</div>
+          <div class="meta">${dt.toLocaleDateString()} • ${lastRound.holes.filter(isComplete).length} holes • ${strokes} strokes (${strokes>=par?'+':''}${strokes-par})</div>
+        </div>
+        <div class="right">${grind>=0?'+':''}${grind}<span class="sub">Grinder</span></div>
+      </div>
+    `;
+  }
+
+  return `
+    <h2 class="section-title">Round</h2>
+    <div class="section-sub">Tap to count what counts</div>
+
+    <div class="card" style="text-align:center; padding: 28px 18px;">
+      <div class="callout" style="border:none; padding:0; margin: 0 0 18px; text-align:center; font-size:15px;">
+        &ldquo;You don't lower the handicap by aiming at it.<br>You lower it by aiming at the player who shoots those scores.&rdquo;
+      </div>
+      <button class="btn btn-primary btn-big btn-full" id="btn-start-round">Start New Round</button>
+    </div>
+
+    ${lastBit}
+  `;
+}
+
+function attachLandingHandlers() {
+  const b = document.getElementById('btn-start-round');
+  if (b) b.addEventListener('click', startRoundFlow);
+}
+
+function startRoundFlow() {
+  const courseOptions = STATE.courses.map(c => `<option value="${escapeAttr(c)}">${escapeHTML(c)}</option>`).join('');
+  openModal(`
+    <h3>Round Setup</h3>
+    <div class="field">
+      <label>Course</label>
+      <input type="text" id="m-course" list="course-list" placeholder="e.g. Royal Johannesburg" autocomplete="off">
+      <datalist id="course-list">${courseOptions}</datalist>
+    </div>
+    <div class="field">
+      <label>Holes</label>
+      <div class="choices" style="--cols: 2;">
+        <button class="choice" data-holes="9">9</button>
+        <button class="choice selected" data-holes="18">18</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="text" id="m-date" value="${new Date().toLocaleDateString()}" readonly style="opacity:0.7;">
+    </div>
+    <div class="row mt-16">
+      <button class="btn btn-ghost" id="m-cancel">Cancel</button>
+      <button class="btn btn-primary" id="m-go">Begin</button>
+    </div>
+  `);
+  let holes = 18;
+  document.querySelectorAll('[data-holes]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-holes]').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      holes = parseInt(b.dataset.holes, 10);
+    });
+  });
+  document.getElementById('m-cancel').addEventListener('click', closeModal);
+  document.getElementById('m-go').addEventListener('click', () => {
+    const course = document.getElementById('m-course').value.trim();
+    if (course && !STATE.courses.includes(course)) STATE.courses.push(course);
+
+    // Default par template: 4-4-5-3 pattern for variety, edit per hole during play
+    const parPattern = [4,4,5,3,4,4,3,5,4, 4,5,3,4,4,3,5,4,4];
+    const holesArr = [];
+    for (let i = 0; i < holes; i++) holesArr.push(blankHole(parPattern[i % 18]));
+
+    STATE.currentRound = {
+      id: uid(),
+      date: new Date().toISOString(),
+      course: course || 'Untitled',
+      totalHoles: holes,
+      holes: holesArr,
+      currentHoleIdx: 0
+    };
+    save();
+    closeModal();
+    renderRound();
+  });
+}
+
+function renderHoleEntry() {
+  const r = STATE.currentRound;
+  const idx = r.currentHoleIdx;
+  const h = r.holes[idx];
+
+  // Live stats
+  const grinderRun = roundGrinderTotal(r);
+  const procRun = roundProcessTotal(r);
+  const procMax = roundProcessMax(r);
+  const strokesRun = roundTotalStrokes(r);
+  const parRun = r.holes.slice(0, idx + (isComplete(h) ? 1 : 0)).reduce((s,hh)=>s+hh.par,0);
+  const relRun = strokesRun - parRun;
+
+  // Progress dots
+  let dots = '';
+  for (let i = 0; i < r.holes.length; i++) {
+    let cls = 'hole-dot';
+    if (isComplete(r.holes[i])) cls += ' done';
+    if (i === idx) cls += ' current';
+    dots += `<div class="${cls}"></div>`;
+  }
+
+  const isPar3 = h.par === 3;
+
+  return `
+    <div class="hole-bar">
+      <button class="hole-nav-btn" id="prev-hole" ${idx === 0 ? 'disabled' : ''}>‹</button>
+      <div class="hole-info">
+        <div class="hole-number">${idx + 1}</div>
+        <div class="hole-par">
+          <span class="par-edit" id="par-edit">PAR ${h.par} ▾</span>
+        </div>
+      </div>
+      <button class="hole-nav-btn" id="next-hole" ${idx >= r.holes.length - 1 ? 'disabled' : ''}>›</button>
+    </div>
+
+    <div class="hole-progress">${dots}</div>
+
+    <div class="live-stats">
+      <div class="live-stat">
+        <div class="v">${strokesRun || 0}</div>
+        <div class="l">Strokes ${relRun !== 0 && strokesRun ? (relRun > 0 ? '+'+relRun : relRun) : ''}</div>
+      </div>
+      <div class="live-stat">
+        <div class="v ${grinderRun >= 0 ? 'good' : 'bad'}">${grinderRun >= 0 ? '+' : ''}${grinderRun}</div>
+        <div class="l">Grinder</div>
+      </div>
+      <div class="live-stat">
+        <div class="v">${procRun}/${procMax || '·'}</div>
+        <div class="l">Process</div>
+      </div>
+    </div>
+
+    <div class="label"><span>1 — Score</span><span class="tiny">${h.score ? scoreLabel(h.score) : 'tap one'}</span></div>
+    <div class="choices" style="--cols: 3;">
+      ${scoreBtn('birdie-better', 'Birdie+', '−1 or better', h)}
+      ${scoreBtn('par', 'Par', '0', h)}
+      ${scoreBtn('bogey', 'Bogey', '+1', h)}
+    </div>
+    <div class="choices mt-8" style="--cols: 3;">
+      ${scoreBtn('double', 'Double', '+2', h, 'warn')}
+      ${scoreBtn('triple', 'Triple', '+3', h, 'danger')}
+      ${scoreBtn('worse', '+4 ↑', 'or worse', h, 'danger')}
+    </div>
+
+    <div class="label"><span>2 — Fairway</span><span class="tiny">${isPar3 ? 'n/a · par 3' : (h.fairway || 'tap one')}</span></div>
+    ${isPar3 ? `<div class="card" style="text-align:center; padding:14px; color:var(--ink-3); font-style:italic; font-family:Georgia,serif; font-size:13px;">Not scored on par 3</div>` :
+    `<div class="choices" style="--cols: 3;">
+      ${choiceBtn('fairway', 'hit', 'Hit', 'fairway', h)}
+      ${choiceBtn('fairway', 'safe', 'Safe Miss', 'rough', h)}
+      ${choiceBtn('fairway', 'trouble', 'Trouble', 'OB / hazard', h, 'danger')}
+    </div>`}
+
+    <div class="label"><span>3 — Green</span><span class="tiny">${h.green || 'tap one'}</span></div>
+    <div class="choices" style="--cols: 2;">
+      ${choiceBtn('green', 'hit', 'GIR', 'green in reg.', h)}
+      ${choiceBtn('green', 'short', 'Missed Short', 'or front', h, 'warn')}
+    </div>
+    <div class="choices mt-8" style="--cols: 2;">
+      ${choiceBtn('green', 'long', 'Missed Long', 'or back', h, 'warn')}
+      ${choiceBtn('green', 'short-side', 'Short-Sided', 'wrong side', h, 'danger')}
+    </div>
+
+    <div class="label"><span>4 — Putts</span><span class="tiny">${h.putts !== null ? h.putts + ' putts' : 'tap one'}</span></div>
+    <div class="choices" style="--cols: 4;">
+      ${puttsBtn(1, h)}
+      ${puttsBtn(2, h)}
+      ${puttsBtn(3, h, 'warn')}
+      ${puttsBtn(4, h, 'danger')}
+    </div>
+
+    <div class="label"><span>5 — Decision</span><span class="tiny">${h.decision || 'tap one'}</span></div>
+    <div class="choices" style="--cols: 2;">
+      ${choiceBtn('decision', 'safe', 'Played Safe', 'conservative', h)}
+      ${choiceBtn('decision', 'attacked', 'Attacked', 'went for it', h, 'warn')}
+    </div>
+
+    <div class="label" style="margin-top:18px;">
+      <span>Penalty stroke?</span>
+      <span class="tiny">${h.penalty ? 'yes' : 'no'}</span>
+    </div>
+    <div class="choices" style="--cols: 2;">
+      <button class="choice ${h.penalty === false ? 'selected' : ''}" data-penalty="false">No</button>
+      <button class="choice danger ${h.penalty === true ? 'selected' : ''}" data-penalty="true">Yes</button>
+    </div>
+
+    <div class="row mt-16">
+      <button class="btn btn-ghost" id="btn-end-round">End Round</button>
+      <button class="btn btn-primary btn-big" id="btn-next-hole">${idx >= r.holes.length - 1 ? 'Finish ▸' : 'Next Hole ▸'}</button>
+    </div>
+
+    <div class="callout" style="margin-top: 22px; font-size: 13px;">
+      Hole grinder: <b>${holeGrinder(h) >= 0 ? '+' : ''}${holeGrinder(h)}</b> &nbsp;·&nbsp; Process: <b>${isComplete(h) ? holeProcess(h) : '—'}/5</b>
+    </div>
+  `;
+}
+
+function scoreLabel(s) {
+  return ({
+    'birdie-better': 'Birdie or better',
+    'par': 'Par',
+    'bogey': 'Bogey',
+    'double': 'Double bogey',
+    'triple': 'Triple bogey',
+    'worse': '+4 or worse'
+  })[s] || '';
+}
+
+function scoreBtn(value, label, sub, h, tone) {
+  const sel = h.score === value ? 'selected' : '';
+  const t = tone ? tone : '';
+  return `<button class="choice ${t} ${sel}" data-score="${value}">${label}<span class="sub">${sub}</span></button>`;
+}
+function choiceBtn(field, value, label, sub, h, tone) {
+  const sel = h[field] === value ? 'selected' : '';
+  const t = tone ? tone : '';
+  return `<button class="choice ${t} ${sel}" data-field="${field}" data-value="${value}">${label}<span class="sub">${sub}</span></button>`;
+}
+function puttsBtn(n, h, tone) {
+  const sel = h.putts === n ? 'selected' : '';
+  const label = n === 4 ? '4+' : String(n);
+  const sub = n === 1 ? 'one' : (n === 2 ? 'two' : (n === 3 ? 'three' : 'four+'));
+  const t = tone ? tone : '';
+  return `<button class="choice ${t} ${sel}" data-putts="${n}">${label}<span class="sub">${sub}</span></button>`;
+}
+
+function attachHoleHandlers() {
+  const r = STATE.currentRound;
+  const h = r.holes[r.currentHoleIdx];
+
+  // Score
+  document.querySelectorAll('[data-score]').forEach(b => {
+    b.addEventListener('click', () => {
+      const v = b.dataset.score;
+      if (v === 'worse') {
+        // ask for exact strokes
+        openModal(`
+          <h3>How many strokes?</h3>
+          <p class="muted" style="font-size:14px; margin-top:0;">Par was ${h.par}. Tap the score.</p>
+          <div class="choices" style="--cols: 4;">
+            ${[h.par+4, h.par+5, h.par+6, h.par+7].map(n => `<button class="choice danger" data-raw="${n}">${n}</button>`).join('')}
+          </div>
+          <div class="row mt-16">
+            <button class="btn btn-ghost" id="m-back">Cancel</button>
+          </div>
+        `);
+        document.getElementById('m-back').addEventListener('click', closeModal);
+        document.querySelectorAll('[data-raw]').forEach(rb => {
+          rb.addEventListener('click', () => {
+            h.score = 'worse';
+            h.rawStrokes = parseInt(rb.dataset.raw, 10);
+            closeModal();
+            save(); renderRound();
+          });
+        });
+      } else {
+        h.score = v;
+        h.rawStrokes = null;
+        save(); renderRound();
+      }
+    });
+  });
+
+  // Fairway / Green / Decision generic
+  document.querySelectorAll('[data-field]').forEach(b => {
+    b.addEventListener('click', () => {
+      const f = b.dataset.field;
+      h[f] = b.dataset.value;
+      save(); renderRound();
+    });
+  });
+
+  // Putts
+  document.querySelectorAll('[data-putts]').forEach(b => {
+    b.addEventListener('click', () => {
+      h.putts = parseInt(b.dataset.putts, 10);
+      save(); renderRound();
+    });
+  });
+
+  // Penalty
+  document.querySelectorAll('[data-penalty]').forEach(b => {
+    b.addEventListener('click', () => {
+      h.penalty = b.dataset.penalty === 'true';
+      save(); renderRound();
+    });
+  });
+
+  // Par edit
+  document.getElementById('par-edit').addEventListener('click', () => {
+    h.par = h.par === 3 ? 4 : (h.par === 4 ? 5 : 3);
+    // Clear fairway when becoming par 3
+    if (h.par === 3) h.fairway = null;
+    save(); renderRound();
+  });
+
+  // Nav
+  document.getElementById('prev-hole').addEventListener('click', () => {
+    if (r.currentHoleIdx > 0) { r.currentHoleIdx--; save(); renderRound(); }
+  });
+  document.getElementById('next-hole').addEventListener('click', () => {
+    advanceHole();
+  });
+  document.getElementById('btn-next-hole').addEventListener('click', advanceHole);
+  document.getElementById('btn-end-round').addEventListener('click', confirmEndRound);
+}
+
+function advanceHole() {
+  const r = STATE.currentRound;
+  if (r.currentHoleIdx >= r.holes.length - 1) {
+    confirmEndRound();
+  } else {
+    r.currentHoleIdx++;
+    save(); renderRound();
+    // scroll to top
+    document.querySelector('main').scrollTop = 0;
+  }
+}
+
+function confirmEndRound() {
+  const r = STATE.currentRound;
+  const completed = r.holes.filter(isComplete).length;
+  openModal(`
+    <h3>End round?</h3>
+    <p class="muted" style="font-size:14px; margin-top:0;">${completed} of ${r.holes.length} holes recorded.</p>
+    <p style="font-family:Georgia,serif; font-style:italic; font-size:14px; color:var(--ink-2);">
+      ${completed < r.holes.length * 0.5 ? 'Less than half complete — this round won\'t count toward the Trajectory Index.' : 'This will be saved and visible in Stats.'}
+    </p>
+    <div class="row mt-16">
+      <button class="btn btn-ghost" id="m-no">Keep Playing</button>
+      <button class="btn btn-primary" id="m-yes">End Round</button>
+    </div>
+  `);
+  document.getElementById('m-no').addEventListener('click', closeModal);
+  document.getElementById('m-yes').addEventListener('click', () => {
+    closeModal();
+    finishRound();
+  });
+}
+
+function finishRound() {
+  const r = STATE.currentRound;
+  STATE.rounds.push(r);
+  STATE.currentRound = null;
+  save();
+  showRoundSummary(r);
+}
+
+function showRoundSummary(r) {
+  const view = document.getElementById('view-round');
+  const strokes = roundTotalStrokes(r);
+  const par = r.holes.filter(isComplete).reduce((s,h)=>s+h.par, 0);
+  const rel = strokes - par;
+  const grind = roundGrinderTotal(r);
+  const proc = roundProcessTotal(r);
+  const procMax = roundProcessMax(r);
+  const doubles = roundDoubles(r);
+  const tps = roundThreePutts(r);
+  const fir = roundFIRPct(r);
+  const gir = roundGIRPct(r);
+  const scramble = roundScramblePct(r);
+
+  let band = '';
+  if (grind >= 30) band = 'Single-digit round, mentally. Bank it.';
+  else if (grind >= 15) band = 'Clean round of your new game.';
+  else if (grind >= 0) band = 'Mixed. Two or three old habits crept in.';
+  else band = 'You played the 10-handicap\'s round. Strokes were what they were; the player you\'re becoming did not show up.';
+
+  view.innerHTML = `
+    <h2 class="section-title">Round Complete</h2>
+    <div class="section-sub">${new Date(r.date).toLocaleDateString()} · ${r.course}</div>
+
+    <div class="card round-summary">
+      <div class="tiny center">Strokes</div>
+      <div class="big-num">${strokes} <span style="font-size:32px; color:var(--ink-3); font-weight:600;">(${rel>=0?'+':''}${rel})</span></div>
+
+      <div class="tiny center" style="margin-top:18px;">Grinder Card</div>
+      <div class="grinder ${grind>=0?'pos':'neg'}">${grind>=0?'+':''}${grind}</div>
+      <div class="center" style="font-family:Georgia,serif; font-style:italic; font-size:13px; color:var(--ink-2);">${band}</div>
+
+      <div class="summary-grid">
+        <div class="summary-stat"><div class="v">${proc}/${procMax}</div><div class="l">Process</div></div>
+        <div class="summary-stat"><div class="v">${doubles}</div><div class="l">Doubles+</div></div>
+        <div class="summary-stat"><div class="v">${tps}</div><div class="l">3-Putts</div></div>
+        <div class="summary-stat"><div class="v">${fir!==null?fir+'%':'—'}</div><div class="l">Fairways</div></div>
+        <div class="summary-stat"><div class="v">${gir!==null?gir+'%':'—'}</div><div class="l">GIR</div></div>
+        <div class="summary-stat"><div class="v">${scramble!==null?scramble+'%':'—'}</div><div class="l">Scramble</div></div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-big" id="back-home">Done</button>
+  `;
+  document.getElementById('back-home').addEventListener('click', renderRound);
+}
+
+// =====================================================================
+// VIEW: PRACTICE
+// =====================================================================
+const DRILLS = {
+  putting: [
+    { id: 'gate-3ft', name: '3-Foot Gate Drill', unit: 'in a row', target: 25, plan: 'Make N in a row from 3 ft. Restart on every miss.' },
+    { id: 'lag-ladder', name: 'Ladder Lag', unit: '/9 within a putter length', target: 9, plan: '20/30/40 ft, 3 balls each.' },
+    { id: 'pressure-9', name: '9-Hole Pressure Round', unit: 'putts', target: 18, plan: 'Random 6–25 ft spots, one or two putt each.' }
+  ],
+  chipping: [
+    { id: 'updown-ladder', name: 'Up-and-Down Ladder', unit: '% saved', target: 50, plan: '3 balls each from 5/10/20/30 yds.' },
+    { id: 'one-club', name: 'One-Club Challenge', unit: 'shots controlled', target: 9, plan: '56° only — chip-and-run, lofted, bump.' },
+    { id: 'worst-lie', name: 'Worst-Lie Practice', unit: 'shots', target: 10, plan: 'Divots, rough, thin lies.' }
+  ],
+  wedges: [
+    { id: 'clock-ladder', name: 'Clock-Face Ladder', unit: 'distances learned', target: 9, plan: '7:30/9:00/10:30 with each wedge.' },
+    { id: 'random-yards', name: 'Random Yardage', unit: '/10 close', target: 10, plan: 'Random yardages 40–100; commit each shot.' }
+  ],
+  fullswing: [
+    { id: 'block-iron', name: 'Block — Slow Iron', unit: 'balls', target: 15, plan: 'One club, slow rehearsals, max 15 balls.' },
+    { id: 'random-club', name: 'Random Club Random Target', unit: 'shots', target: 20, plan: 'Different club + target every ball.' },
+    { id: 'worst-shot', name: 'Worst-Shot Drill', unit: 'iron-from-trouble shots', target: 10, plan: 'Hit from where your bad drive lands.' }
+  ],
+  oncourse: [
+    { id: 'two-ball', name: 'Ego vs Process Two-Ball', unit: 'holes played', target: 6, plan: 'One ball driver/attack, one ball 3W/safe. Compare.' }
+  ]
+};
+const CAT_META = {
+  putting:    { name: 'Putting',      icon: '◉', target: 25 },
+  chipping:   { name: 'Chipping',     icon: '⌖', target: 25 },
+  wedges:     { name: 'Wedges',       icon: '◐', target: 20 },
+  fullswing:  { name: 'Full Swing',   icon: '◇', target: 20 },
+  oncourse:   { name: 'On-Course',    icon: '⌘', target: 10 }
+};
+
+function renderPractice() {
+  const view = document.getElementById('view-practice');
+  const recent = STATE.practice.slice(-8).reverse();
+  view.innerHTML = `
+    <h2 class="section-title">Practice</h2>
+    <div class="section-sub">Where the strokes are actually saved</div>
+
+    <div class="callout">
+      Your plan: <b>70%</b> inside 100 yards. The range is theatre; the short-game area is work.
+    </div>
+
+    <h3 class="block-title">Log a session</h3>
+    <div class="cat-grid">
+      ${Object.entries(CAT_META).map(([k, m]) => `
+        <button class="cat-tile" data-cat="${k}">
+          <div class="ic">${m.icon}</div>
+          <div class="t">${m.name}</div>
+          <div class="s">${m.target}% of time</div>
+        </button>
+      `).join('')}
+    </div>
+
+    <h3 class="block-title">Recent Sessions</h3>
+    ${recent.length ? recent.map(p => `
+      <div class="list-item">
+        <div>
+          <div class="title">${escapeHTML(DRILLS[p.category]?.find(d => d.id === p.drill)?.name || p.drill)}</div>
+          <div class="meta">${CAT_META[p.category]?.name || p.category} · ${new Date(p.date).toLocaleDateString()} · ${p.duration} min</div>
+        </div>
+        <div class="right">${p.result}<span class="sub">${escapeHTML(p.unit || '')}</span></div>
+      </div>
+    `).join('') : `
+      <div class="empty">
+        <div class="title">Nothing logged yet</div>
+        <p>Tap a category above to record what you actually did. No plans, no enforcement — just truthful notes.</p>
+      </div>
+    `}
+  `;
+  document.querySelectorAll('[data-cat]').forEach(b => {
+    b.addEventListener('click', () => openDrillPicker(b.dataset.cat));
+  });
+}
+
+function openDrillPicker(cat) {
+  const drills = DRILLS[cat] || [];
+  const meta = CAT_META[cat];
+  openModal(`
+    <h3>${meta.name}</h3>
+    <p class="muted" style="font-size:13px; margin-top:0;">Pick a drill — or 'custom'.</p>
+    ${drills.map(d => `
+      <button class="btn btn-ghost btn-full" data-drill="${d.id}" style="text-align:left; justify-content:flex-start; margin-bottom:8px; padding:14px;">
+        <div style="text-align:left;">
+          <div style="font-weight:700;">${d.name}</div>
+          <div style="font-size:12px; color:var(--ink-3); font-weight:500; margin-top:2px;">${d.plan}</div>
+        </div>
+      </button>
+    `).join('')}
+    <button class="btn btn-ghost btn-full" data-drill="custom" style="text-align:left; justify-content:flex-start; padding:14px;">
+      <div style="font-weight:700;">+ Custom drill</div>
+    </button>
+    <div class="row mt-16">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  `);
+  document.querySelectorAll('[data-drill]').forEach(b => {
+    b.addEventListener('click', () => openSessionLog(cat, b.dataset.drill));
+  });
+}
+
+function openSessionLog(cat, drillId) {
+  const drill = drillId === 'custom' ? null : DRILLS[cat].find(d => d.id === drillId);
+  const drillName = drill ? drill.name : '';
+  const unit = drill ? drill.unit : 'reps';
+
+  openModal(`
+    <h3>${drill ? drill.name : 'Custom — ' + CAT_META[cat].name}</h3>
+    ${drill ? `<p style="font-family:Georgia,serif; font-style:italic; font-size:13px; color:var(--ink-2); margin-top:0;">${drill.plan}</p>` : ''}
+
+    ${!drill ? `<div class="field">
+      <label>Drill name</label>
+      <input type="text" id="m-drillname" placeholder="e.g. uphill 6-footer">
+    </div>` : ''}
+
+    <div class="field">
+      <label>Result <span class="muted" style="font-weight:500;">(${unit})</span></label>
+      <input type="number" id="m-result" inputmode="numeric" placeholder="e.g. 18">
+    </div>
+
+    <div class="field">
+      <label>Minutes spent</label>
+      <div class="choices" style="--cols: 4;">
+        ${[10, 20, 30, 45].map(m => `<button class="choice" data-mins="${m}" style="min-height:60px;">${m}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Notes (optional)</label>
+      <textarea id="m-notes" rows="2" placeholder="What did you notice?"></textarea>
+    </div>
+
+    <div class="row mt-16">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="m-save-session">Save</button>
+    </div>
+  `);
+
+  let minutes = 20;
+  document.querySelectorAll('[data-mins]').forEach(b => {
+    if (b.dataset.mins === '20') b.classList.add('selected');
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-mins]').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      minutes = parseInt(b.dataset.mins, 10);
+    });
+  });
+  document.getElementById('m-save-session').addEventListener('click', () => {
+    const result = parseFloat(document.getElementById('m-result').value);
+    const notes = document.getElementById('m-notes').value.trim();
+    if (isNaN(result)) { alert('Enter a result number.'); return; }
+    const customName = drill ? null : (document.getElementById('m-drillname').value || 'Custom');
+    STATE.practice.push({
+      id: uid(),
+      date: new Date().toISOString(),
+      category: cat,
+      drill: drillId === 'custom' ? customName : drillId,
+      drillName: drill ? drill.name : customName,
+      result,
+      unit,
+      duration: minutes,
+      notes
+    });
+    save();
+    closeModal();
+    renderPractice();
+  });
+}
+
+// =====================================================================
+// VIEW: STATS
+// =====================================================================
+function renderStats() {
+  const view = document.getElementById('view-stats');
+  const ti = trajectoryIndex();
+  const history = trajectoryHistory();
+  const validRounds = STATE.rounds.filter(r => r.holes.filter(isComplete).length >= (r.totalHoles || 18) * 0.5);
+
+  // Trend
+  let trend = '';
+  if (history.length >= 2) {
+    const prev = history[history.length - 2];
+    const cur = history[history.length - 1];
+    if (prev !== null && cur !== null) {
+      const d = cur - prev;
+      if (d > 0) trend = `<span class="up">▲ +${d}</span> vs last round`;
+      else if (d < 0) trend = `<span class="down">▼ ${d}</span> vs last round`;
+      else trend = `<span>—</span> flat vs last round`;
+    }
+  }
+
+  const tiDisplay = ti.value !== null
+    ? `<div class="ti-value">${ti.value}</div>
+       <div class="ti-trend">${trend} · based on last ${ti.basis} rounds</div>
+       <div class="ti-explainer">Process ${ti.parts.proc} · Damage control ${ti.parts.dmg} · Strokes ${ti.parts.stroke}</div>`
+    : `<div class="ti-value none">${ti.need} more round${ti.need===1?'':'s'} to calculate</div>
+       <div class="ti-explainer">The TI is a 0–100 score blending process (40%), damage control (40%) and strokes (20%) over a 5-round window.</div>`;
+
+  // Per-round grinder bars
+  const grindVals = validRounds.slice(-12).map(r => roundGrinderTotal(r));
+  const grindLabels = validRounds.slice(-12).map((r, i, a) => i === 0 || i === a.length - 1 ? new Date(r.date).toLocaleDateString().slice(0,5) : '');
+
+  // Per-round process %
+  const procPcts = validRounds.slice(-12).map(r => {
+    const t = roundProcessTotal(r), m = roundProcessMax(r);
+    return m ? Math.round(t/m*100) : null;
+  });
+  const procLabels = validRounds.slice(-12).map((r,i,a) => i === 0 || i === a.length-1 ? new Date(r.date).toLocaleDateString().slice(0,5) : '');
+
+  // TI history
+  const tiVals = history.slice(-12);
+  const tiLabels = validRounds.slice(-12).map((r,i,a) => i === 0 || i === a.length-1 ? new Date(r.date).toLocaleDateString().slice(0,5) : '');
+
+  // Damage events per round
+  const dmgVals = validRounds.slice(-12).map(r => roundDoubles(r) + roundThreePutts(r) + roundPenalties(r));
+
+  // Practice time per category last 4 weeks
+  const fourWeeksAgo = Date.now() - 28*24*3600*1000;
+  const recentP = STATE.practice.filter(p => new Date(p.date).getTime() > fourWeeksAgo);
+  const catTotals = { putting: 0, chipping: 0, wedges: 0, fullswing: 0, oncourse: 0 };
+  recentP.forEach(p => { if (catTotals[p.category] !== undefined) catTotals[p.category] += p.duration || 0; });
+  const totalP = Object.values(catTotals).reduce((a,b)=>a+b,0);
+  const shortPct = totalP ? Math.round((catTotals.putting + catTotals.chipping + catTotals.wedges) / totalP * 100) : null;
+
+  view.innerHTML = `
+    <h2 class="section-title">Stats</h2>
+    <div class="section-sub">The slow honest mirror</div>
+
+    <div class="ti-display">
+      <div class="ti-label">Trajectory Index</div>
+      ${tiDisplay}
+    </div>
+
+    <div class="spark-row">
+      <div class="spark">
+        <div class="v">${validRounds.length}</div>
+        <div class="l">Rounds Logged</div>
+      </div>
+      <div class="spark">
+        <div class="v">${shortPct !== null ? shortPct + '%' : '—'}</div>
+        <div class="l">Short Game (28d)</div>
+        <div style="font-size:10px; color:var(--ink-3); margin-top:2px;">target 70%</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <h4>Trajectory Index</h4>
+      <div class="chart-sub">0–100 · rolling 5-round window</div>
+      ${tiVals.filter(v=>v!==null).length ? lineChart(tiVals, { min: 0, max: 100, color: '#9bc34a' }) : `<div class="chart-empty">Log 3+ rounds to see your TI trend.</div>`}
+    </div>
+
+    <div class="chart-wrap">
+      <h4>Grinder Card</h4>
+      <div class="chart-sub">Per round · positive = boring won</div>
+      ${grindVals.length ? barChart(grindVals, grindLabels) : `<div class="chart-empty">No rounds yet.</div>`}
+    </div>
+
+    <div class="chart-wrap">
+      <h4>Process Quality</h4>
+      <div class="chart-sub">% per round · derived from inputs</div>
+      ${procPcts.filter(v=>v!==null).length ? lineChart(procPcts, { min: 0, max: 100, color: '#d9a544' }) : `<div class="chart-empty">No rounds yet.</div>`}
+    </div>
+
+    <div class="chart-wrap">
+      <h4>Damage Events</h4>
+      <div class="chart-sub">Doubles + 3-putts + penalties · lower is better</div>
+      ${dmgVals.length ? barChart(dmgVals, grindLabels, { posColor: '#c84545' }) : `<div class="chart-empty">No rounds yet.</div>`}
+    </div>
+
+    <div class="chart-wrap">
+      <h4>Practice Mix · 28 days</h4>
+      <div class="chart-sub">Target 70% in the three short-game blocks</div>
+      ${totalP ? renderPracticeMix(catTotals, totalP) : `<div class="chart-empty">Log practice sessions to see your mix.</div>`}
+    </div>
+
+    <h3 class="block-title">Settings</h3>
+    <div class="card">
+      <div class="row" style="align-items:center;">
+        <div>
+          <div class="tiny">Baseline (18-hole strokes)</div>
+          <div style="font-family:Georgia,serif; font-size:24px; font-weight:800;">${STATE.baseline}</div>
+        </div>
+        <button class="btn btn-ghost" id="edit-baseline" style="flex:0 0 auto;">Edit</button>
+      </div>
+      <p class="muted" style="font-size:12px; margin: 8px 0 0;">The TI compares your scoring against this baseline. Set it to where you currently are, not where you want to be — otherwise the strokes component will sandbag your score.</p>
+    </div>
+
+    <button class="btn btn-ghost btn-full mt-16" id="btn-export">Export Data (CSV)</button>
+    <button class="btn btn-danger btn-full mt-8" id="btn-wipe">Erase All Data</button>
+  `;
+
+  document.getElementById('edit-baseline').addEventListener('click', () => {
+    openModal(`
+      <h3>Baseline strokes (18 holes)</h3>
+      <p style="font-family:Georgia,serif; font-style:italic; font-size:13px; color:var(--ink-2); margin-top:0;">
+        A 10.4-handicap on a course of slope 113 / rating 72 averages around 82–86. Pick honestly.
+      </p>
+      <div class="field">
+        <label>Strokes</label>
+        <input type="number" id="m-baseline" value="${STATE.baseline}" inputmode="numeric">
+      </div>
+      <div class="row mt-16">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="m-save-base">Save</button>
+      </div>
+    `);
+    document.getElementById('m-save-base').addEventListener('click', () => {
+      const v = parseInt(document.getElementById('m-baseline').value, 10);
+      if (!isNaN(v) && v > 60 && v < 130) {
+        STATE.baseline = v; save(); closeModal(); renderStats();
+      }
+    });
+  });
+
+  document.getElementById('btn-export').addEventListener('click', exportCSV);
+  document.getElementById('btn-wipe').addEventListener('click', () => {
+    openModal(`
+      <h3>Erase everything?</h3>
+      <p style="font-family:Georgia,serif; font-style:italic; font-size:14px; color:var(--ink-2);">This deletes all rounds, practice sessions, and settings. Cannot be undone.</p>
+      <div class="row mt-16">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-danger" id="m-confirm-wipe">Erase</button>
+      </div>
+    `);
+    document.getElementById('m-confirm-wipe').addEventListener('click', () => {
+      STATE = defaults(); save(); closeModal(); renderAll();
+    });
+  });
+}
+
+function renderPracticeMix(totals, total) {
+  const items = [
+    { k: 'putting', name: 'Putting', color: '#9bc34a' },
+    { k: 'chipping', name: 'Chipping', color: '#b7d04a' },
+    { k: 'wedges', name: 'Wedges', color: '#d9a544' },
+    { k: 'fullswing', name: 'Full Swing', color: '#d97f3a' },
+    { k: 'oncourse', name: 'On-Course', color: '#c84545' }
+  ];
+  return `
+    <div style="height: 30px; display:flex; border-radius:6px; overflow:hidden; border:1px solid var(--line);">
+      ${items.map(it => {
+        const pct = totals[it.k] / total * 100;
+        return pct > 0 ? `<div style="background:${it.color}; flex: ${pct}; min-width:${pct>3?'auto':'2px'};"></div>` : '';
+      }).join('')}
+    </div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px;">
+      ${items.map(it => `
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+          <div style="width:12px; height:12px; background:${it.color}; border-radius:3px;"></div>
+          <span style="color:var(--ink-2);">${it.name}</span>
+          <span style="margin-left:auto; color:var(--ink); font-weight:700;">${Math.round(totals[it.k]/total*100)}%</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function exportCSV() {
+  let csv = 'TYPE,DATE,COURSE,HOLE,PAR,SCORE,STROKES,FAIRWAY,GREEN,PUTTS,DECISION,PENALTY,HOLE_GRINDER,HOLE_PROCESS\n';
+  STATE.rounds.forEach(r => {
+    r.holes.forEach((h, i) => {
+      if (!isComplete(h)) return;
+      csv += [
+        'round',
+        new Date(r.date).toISOString().slice(0,10),
+        '"' + (r.course || '').replace(/"/g,'""') + '"',
+        i+1, h.par, scoreLabel(h.score), holeStrokes(h),
+        h.fairway || '', h.green || '', h.putts !== null ? h.putts : '',
+        h.decision || '', h.penalty ? 'yes' : 'no',
+        holeGrinder(h), holeProcess(h) ?? ''
+      ].join(',') + '\n';
+    });
+  });
+  csv += '\nTYPE,DATE,CATEGORY,DRILL,RESULT,UNIT,MINUTES,NOTES\n';
+  STATE.practice.forEach(p => {
+    csv += [
+      'practice',
+      new Date(p.date).toISOString().slice(0,10),
+      p.category, '"' + (p.drillName || p.drill || '').replace(/"/g,'""') + '"',
+      p.result, p.unit || '', p.duration, '"' + (p.notes || '').replace(/"/g,'""') + '"'
+    ].join(',') + '\n';
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fairway-export-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function escapeHTML(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return escapeHTML(s); }
+
+// =====================================================================
+// TAB ROUTING
+// =====================================================================
+function setTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  const subs = {
+    round: STATE.currentRound ? 'Round in progress' : 'A field instrument for the grinder',
+    practice: 'Where the strokes are saved',
+    stats: 'The slow honest mirror'
+  };
+  document.getElementById('header-sub').textContent = subs[name] || '';
+  if (name === 'round') renderRound();
+  else if (name === 'practice') renderPractice();
+  else if (name === 'stats') renderStats();
+  document.querySelector('main').scrollTop = 0;
+}
+document.querySelectorAll('.tab-btn').forEach(b => {
+  b.addEventListener('click', () => setTab(b.dataset.tab));
+});
+
+function renderAll() {
+  renderRound(); renderPractice(); renderStats();
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+renderAll();
+
+// Register service worker for offline if available
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
