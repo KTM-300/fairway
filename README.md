@@ -110,6 +110,11 @@ It Hurt* button after finishing a round) to open its detail screen. It shows:
   worst-grinder holes so you can see at a glance where the damage was.
 - **Where It Hurt** — a damage report: counts of blown-up holes, three-putts, penalty
   strokes, trouble tee shots, short-sides, missed greens, plus rough stroke estimates.
+- **Double Bogey Forensics** — for every double-or-worse hole, the app attributes the
+  primary cause in the chain (tee / approach / short-side / putting / penalty) and writes
+  a one-line narrative of how the hole came apart. A summary at the top shows the
+  count by cause: *"6 holes blew up today. Where the chain started: 3 tee, 1 pen, 1
+  s-side, 1 putt. Most of the damage today started with tee shot in trouble."*
 - **What the Round Says** — 3–6 generated observations that pick out the patterns: *"You
   hit 10 greens but three-putted 2 of them. The iron play was there; the putting gave it
   back."*
@@ -119,6 +124,13 @@ It Hurt* button after finishing a round) to open its detail screen. It shows:
   off the tee suggests benching the driver for a few rounds.
 - A noise warning in amber: *"One round is one Tuesday."* Cross-check the patterns in the
   Stats tab over 5 rounds before changing your practice schedule.
+
+### Where Doubles Come From — cross-round pattern (Stats tab)
+
+The Stats tab also shows an aggregated forensics view: across your last 10 rounds, what
+fraction of your doubles started with which cause? A clean 50%+ dominance of one cause
+is the strongest single piece of practice guidance the app produces. Most amateurs have
+one dominant leak; this tells you which.
 
 ---
 
