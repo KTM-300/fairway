@@ -95,9 +95,30 @@ No timers, no enforcement — just an honest log.
 - **Process Quality line** — % per round, derived from your inputs.
 - **Damage Events bars** — count of doubles + 3-putts + penalties per round; lower is better.
 - **Practice Mix** — your last 28 days. Target is 70% inside the three short-game blocks.
+- **Recent Rounds list** — tap any round to open its detail screen (see below).
 
 In **Settings** at the bottom you can edit your **baseline strokes** (default 84) and export
 all your data as a CSV file for safekeeping.
+
+### Round Detail — "Where It Hurt"
+
+Tap any round (on the Round tab landing, in the Recent Rounds list, or via the *See Where
+It Hurt* button after finishing a round) to open its detail screen. It shows:
+
+- **Three top-line stats** — Strokes, Grinder, Process.
+- **Hole by Hole strip** — all 18 holes color-coded by score, with red rings on the three
+  worst-grinder holes so you can see at a glance where the damage was.
+- **Where It Hurt** — a damage report: counts of blown-up holes, three-putts, penalty
+  strokes, trouble tee shots, short-sides, missed greens, plus rough stroke estimates.
+- **What the Round Says** — 3–6 generated observations that pick out the patterns: *"You
+  hit 10 greens but three-putted 2 of them. The iron play was there; the putting gave it
+  back."*
+- **Practice This Week** — up to 3 prescriptions that match symptoms to causes. Short-sides
+  send you to on-course aim discipline, not chipping (chipping practice wouldn't fix it).
+  Three-putts send you to lag-putting drills with specific protocols. Excessive trouble
+  off the tee suggests benching the driver for a few rounds.
+- A noise warning in amber: *"One round is one Tuesday."* Cross-check the patterns in the
+  Stats tab over 5 rounds before changing your practice schedule.
 
 ---
 

@@ -517,6 +517,185 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
   margin-top: 4px; font-weight: 600;
 }
 
+/* === ROUND DETAIL === */
+.detail-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid var(--line-2);
+  color: var(--ink); padding: 10px 14px; border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  font-family: inherit;
+  margin-bottom: 14px;
+}
+.detail-back:active { background: var(--line); }
+
+.detail-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+.detail-stat {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 6px; text-align: center;
+}
+.detail-stat .v {
+  font-family: "Charter", Georgia, serif;
+  font-size: 28px; font-weight: 800; line-height: 1;
+}
+.detail-stat .v.good { color: var(--good); }
+.detail-stat .v.bad { color: var(--bad); }
+.detail-stat .l {
+  font-size: 10px; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--ink-3);
+  font-weight: 700; margin-top: 6px;
+}
+
+/* Hole strip */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 16px;
+}
+.strip-cell {
+  aspect-ratio: 1; display: flex;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  color: var(--ink-3);
+  background: var(--surface-2);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  padding: 2px;
+  letter-spacing: 0.5px;
+}
+.strip-cell .rel {
+  font-family: "Charter", Georgia, serif;
+  font-size: 15px; font-weight: 800;
+  margin-top: 1px;
+  color: var(--ink);
+}
+.strip-cell.birdie { background: rgba(110, 194, 74, 0.25); border-color: var(--good); }
+.strip-cell.birdie .rel { color: var(--good); }
+.strip-cell.par { background: rgba(155, 195, 74, 0.12); border-color: var(--primary-deep); }
+.strip-cell.par .rel { color: var(--primary); }
+.strip-cell.bogey { background: var(--surface-2); }
+.strip-cell.double { background: rgba(217, 127, 58, 0.18); border-color: var(--warn); }
+.strip-cell.double .rel { color: var(--warn); }
+.strip-cell.triple { background: rgba(200, 69, 69, 0.18); border-color: var(--bad); }
+.strip-cell.triple .rel { color: var(--bad); }
+.strip-cell.empty { opacity: 0.3; }
+.strip-cell.worst {
+  box-shadow: 0 0 0 2px var(--bad);
+}
+
+/* Damage report */
+.damage-rows { margin-top: 6px; }
+.damage-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.damage-row .lbl {
+  display: flex; align-items: center; gap: 10px;
+  text-transform: none; letter-spacing: normal;
+  font-size: 15px; color: var(--ink); font-weight: 600;
+}
+.damage-row .dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.damage-row .count {
+  font-family: "Charter", Georgia, serif;
+  font-size: 22px; font-weight: 800; color: var(--ink);
+  white-space: nowrap;
+}
+.damage-row .count .sub {
+  font-family: system-ui, sans-serif;
+  font-size: 11px; color: var(--ink-3); font-weight: 600;
+  margin-left: 4px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+
+/* Call-outs */
+.callout-item {
+  background: var(--surface);
+  border-left: 3px solid var(--primary);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 14px; line-height: 1.5;
+  color: var(--ink-2);
+  border-radius: 0 8px 8px 0;
+}
+.callout-item.warn { border-left-color: var(--warn); }
+.callout-item.bad { border-left-color: var(--bad); }
+.callout-item.good { border-left-color: var(--good); }
+.callout-item b { color: var(--ink); font-weight: 700; }
+
+/* Prescription card */
+.rx {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.rx-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  margin-bottom: 10px;
+}
+.rx-icon {
+  width: 38px; height: 38px;
+  background: var(--surface-2);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--primary);
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.rx-head-text { flex: 1; }
+.rx-title {
+  font-family: "Charter", Georgia, serif;
+  font-size: 16px; font-weight: 700;
+  color: var(--ink); line-height: 1.2;
+}
+.rx-sub {
+  font-size: 12px; color: var(--ink-3);
+  font-weight: 600; margin-top: 3px;
+  letter-spacing: 0.4px; text-transform: uppercase;
+}
+.rx-action {
+  font-family: Georgia, serif; font-style: italic;
+  font-size: 14px; color: var(--ink-2);
+  line-height: 1.5;
+}
+.rx-action b { font-style: normal; color: var(--ink); font-weight: 700; }
+
+/* Round list item — tappable */
+.round-list-item { cursor: pointer; transition: background 0.1s; }
+.round-list-item:active { background: var(--surface-2); }
+
+/* Noise warning callout */
+.noise-warn {
+  font-size: 12px; color: var(--accent);
+  font-style: italic; font-family: Georgia, serif;
+  padding: 10px 12px;
+  background: rgba(217, 165, 68, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  margin: 14px 0;
+  line-height: 1.5;
+}
+.noise-warn b { font-style: normal; color: var(--ink); font-weight: 700; }
+
 /* === TINY UTILITIES === */
 .row { display: flex; gap: 10px; align-items: center; }
 .row > * { flex: 1; }
@@ -583,6 +762,11 @@ function defaults() {
 }
 
 let STATE = load();
+
+// Transient view state — not persisted
+let DETAIL_ROUND_ID = null;
+let DETAIL_RETURN_TAB = 'round'; // which tab to render the detail in
+
 
 function load() {
   try {
@@ -940,6 +1124,11 @@ document.getElementById('modal-bg').addEventListener('click', e => {
 // =====================================================================
 function renderRound() {
   const view = document.getElementById('view-round');
+  if (DETAIL_ROUND_ID && DETAIL_RETURN_TAB === 'round') {
+    view.innerHTML = renderRoundDetail(DETAIL_ROUND_ID);
+    attachDetailHandlers();
+    return;
+  }
   if (!STATE.currentRound) {
     view.innerHTML = renderRoundLanding();
     attachLandingHandlers();
@@ -959,13 +1148,14 @@ function renderRoundLanding() {
     const dt = new Date(lastRound.date);
     lastBit = `
       <h3 class="block-title">Last Round</h3>
-      <div class="list-item">
+      <div class="list-item round-list-item" data-detail-id="${lastRound.id}">
         <div>
-          <div class="title">${lastRound.course || 'Untitled'}</div>
+          <div class="title">${escapeHTML(lastRound.course || 'Untitled')}</div>
           <div class="meta">${dt.toLocaleDateString()} • ${lastRound.holes.filter(isComplete).length} holes • ${strokes} strokes (${strokes>=par?'+':''}${strokes-par})</div>
         </div>
         <div class="right">${grind>=0?'+':''}${grind}<span class="sub">Grinder</span></div>
       </div>
+      ${STATE.rounds.length > 1 ? `<button class="btn btn-ghost btn-full mt-8" id="view-all-rounds" style="font-size: 14px;">View all ${STATE.rounds.length} rounds →</button>` : ''}
     `;
   }
 
@@ -987,6 +1177,28 @@ function renderRoundLanding() {
 function attachLandingHandlers() {
   const b = document.getElementById('btn-start-round');
   if (b) b.addEventListener('click', startRoundFlow);
+  document.querySelectorAll('[data-detail-id]').forEach(el => {
+    el.addEventListener('click', () => openRoundDetail(el.dataset.detailId, 'round'));
+  });
+  const va = document.getElementById('view-all-rounds');
+  if (va) va.addEventListener('click', () => setTab('stats'));
+}
+
+function openRoundDetail(roundId, returnTab) {
+  DETAIL_ROUND_ID = roundId;
+  DETAIL_RETURN_TAB = returnTab || 'round';
+  // Re-render whichever tab we're returning to
+  if (returnTab === 'stats') renderStats();
+  else renderRound();
+  document.querySelector('main').scrollTop = 0;
+}
+
+function closeRoundDetail() {
+  const tab = DETAIL_RETURN_TAB;
+  DETAIL_ROUND_ID = null;
+  if (tab === 'stats') renderStats();
+  else renderRound();
+  document.querySelector('main').scrollTop = 0;
 }
 
 function startRoundFlow() {
@@ -1356,10 +1568,375 @@ function showRoundSummary(r) {
       </div>
     </div>
 
-    <button class="btn btn-primary btn-full btn-big" id="back-home">Done</button>
+    <div class="row">
+      <button class="btn btn-ghost" id="back-home">Done</button>
+      <button class="btn btn-primary btn-big" id="see-detail">See Where It Hurt</button>
+    </div>
   `;
   document.getElementById('back-home').addEventListener('click', renderRound);
+  document.getElementById('see-detail').addEventListener('click', () => openRoundDetail(r.id, 'round'));
 }
+
+// =====================================================================
+// VIEW: ROUND DETAIL — the analysis screen
+// =====================================================================
+function renderRoundDetail(roundId) {
+  const r = STATE.rounds.find(x => x.id === roundId);
+  if (!r) return '<p class="muted">Round not found.</p>';
+
+  const strokes = roundTotalStrokes(r);
+  const completed = r.holes.filter(isComplete);
+  const par = completed.reduce((s, h) => s + h.par, 0);
+  const rel = strokes - par;
+  const grind = roundGrinderTotal(r);
+  const proc = roundProcessTotal(r);
+  const procMax = roundProcessMax(r);
+
+  // Damage events
+  const ev = analyzeRound(r);
+
+  // Worst 3 holes by grinder
+  const holesByImpact = completed
+    .map((h, i) => ({ idx: r.holes.indexOf(h) + 1, par: h.par, h, g: holeGrinder(h), rel: holeRel(h) }))
+    .filter(x => x.g < 0)
+    .sort((a, b) => a.g - b.g)
+    .slice(0, 3);
+  const worstIdxs = new Set(holesByImpact.map(x => x.idx));
+
+  // Build hole strip
+  const strip = r.holes.map((h, i) => {
+    if (!isComplete(h)) return `<div class="strip-cell empty">${i+1}</div>`;
+    const hRel = holeRel(h);
+    let cls = 'strip-cell';
+    if (hRel <= -1) cls += ' birdie';
+    else if (hRel === 0) cls += ' par';
+    else if (hRel === 1) cls += ' bogey';
+    else if (hRel === 2) cls += ' double';
+    else cls += ' triple';
+    if (worstIdxs.has(i + 1)) cls += ' worst';
+    const relStr = hRel > 0 ? '+' + hRel : (hRel === 0 ? 'E' : String(hRel));
+    return `<div class="${cls}">${i+1}<span class="rel">${relStr}</span></div>`;
+  }).join('');
+
+  // Damage report — count events, with stroke estimate
+  const damageRows = [];
+  if (ev.doubles > 0) {
+    const dStrokes = completed.reduce((s, h) => {
+      const rel = holeRel(h);
+      return s + (rel >= 2 ? (rel - 1) : 0);
+    }, 0);
+    damageRows.push({ color: 'var(--bad)', label: `Holes blown up (double+)`, count: ev.doubles, sub: `~${dStrokes} stroke${dStrokes>1?'s':''}` });
+  }
+  if (ev.threePutts > 0) {
+    const ptStrokes = completed.reduce((s, h) => s + (h.putts > 2 ? h.putts - 2 : 0), 0);
+    damageRows.push({ color: 'var(--warn)', label: `Three-putts`, count: ev.threePutts, sub: `${ptStrokes} stroke${ptStrokes>1?'s':''}` });
+  }
+  if (ev.penalties > 0) {
+    damageRows.push({ color: 'var(--bad)', label: `Penalty strokes`, count: ev.penalties, sub: `${ev.penalties} stroke${ev.penalties>1?'s':''}` });
+  }
+  if (ev.trouble > 0) {
+    damageRows.push({ color: 'var(--warn)', label: `Trouble off the tee`, count: ev.trouble, sub: `of ${ev.par45} par 4/5` });
+  }
+  if (ev.shortSides > 0) {
+    const ssSaved = completed.filter(h => h.green === 'short-side' && holeRel(h) <= 0).length;
+    damageRows.push({ color: 'var(--bad)', label: `Short-sided misses`, count: ev.shortSides, sub: `saved ${ssSaved}` });
+  }
+  if (ev.missedGreens > 0) {
+    damageRows.push({ color: 'var(--ink-3)', label: `Greens missed`, count: ev.missedGreens, sub: `of ${ev.greensEligible}` });
+  }
+  if (damageRows.length === 0) {
+    damageRows.push({ color: 'var(--good)', label: `Clean round`, count: '0', sub: 'no damage events' });
+  }
+
+  // Pattern call-outs
+  const callouts = buildCallouts(r, ev, holesByImpact);
+
+  // Practice prescription
+  const rx = buildPrescription(ev);
+
+  return `
+    <button class="detail-back" id="detail-back">‹ Back</button>
+
+    <h2 class="section-title">${escapeHTML(r.course || 'Untitled')}</h2>
+    <div class="section-sub">${new Date(r.date).toLocaleDateString()} · ${completed.length} holes</div>
+
+    <div class="detail-stats">
+      <div class="detail-stat">
+        <div class="v">${strokes}</div>
+        <div class="l">Strokes · ${rel >= 0 ? '+' : ''}${rel}</div>
+      </div>
+      <div class="detail-stat">
+        <div class="v ${grind >= 0 ? 'good' : 'bad'}">${grind >= 0 ? '+' : ''}${grind}</div>
+        <div class="l">Grinder</div>
+      </div>
+      <div class="detail-stat">
+        <div class="v">${proc}<span style="font-size: 18px; color: var(--ink-3);">/${procMax}</span></div>
+        <div class="l">Process</div>
+      </div>
+    </div>
+
+    <h3 class="block-title">Hole by Hole</h3>
+    <div class="strip">${strip}</div>
+    ${holesByImpact.length ? `<div class="tiny" style="text-align:center; margin: -8px 0 16px; color: var(--ink-3);">Red ring = worst ${holesByImpact.length} hole${holesByImpact.length>1?'s':''}</div>` : ''}
+
+    <h3 class="block-title">Where It Hurt</h3>
+    <div class="damage-rows">
+      ${damageRows.map(d => `
+        <div class="damage-row">
+          <div class="lbl"><span class="dot" style="background:${d.color};"></span>${d.label}</div>
+          <div class="count">${d.count}<span class="sub">${d.sub}</span></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="block-title">What the Round Says</h3>
+    ${callouts.length ? callouts.map(c => `<div class="callout-item ${c.tone || ''}">${c.text}</div>`).join('') :
+      '<div class="callout-item">Nothing remarkable to call out — a quiet, average round.</div>'}
+
+    <h3 class="block-title">Practice This Week</h3>
+    ${rx.map(r => `
+      <div class="rx">
+        <div class="rx-head">
+          <div class="rx-icon">${r.icon || '◎'}</div>
+          <div class="rx-head-text">
+            <div class="rx-title">${r.title}</div>
+            <div class="rx-sub">${r.sub}</div>
+          </div>
+        </div>
+        <div class="rx-action">${r.action}</div>
+      </div>
+    `).join('')}
+
+    <div class="noise-warn">
+      <b>One round is one Tuesday.</b> This prescription is built from one round only. Before changing your practice schedule, look at the same patterns in the Stats tab across the last 5 rounds. If a leak shows up once, it's noise; if it shows up four times in five rounds, it's signal.
+    </div>
+
+    <button class="btn btn-ghost btn-full mt-16" id="detail-back-2">‹ Back</button>
+  `;
+}
+
+function analyzeRound(r) {
+  const completed = r.holes.filter(isComplete);
+  const par45 = r.holes.filter(h => h.par > 3).length;
+  const greensEligible = completed.filter(h => h.green !== null).length;
+  const e = {
+    par45,
+    greensEligible,
+    doubles: completed.filter(h => holeRel(h) >= 2).length,
+    triples: completed.filter(h => holeRel(h) >= 3).length,
+    threePutts: completed.filter(h => h.putts !== null && h.putts >= 3).length,
+    penalties: completed.filter(h => h.penalty).length,
+    trouble: completed.filter(h => h.fairway === 'trouble').length,
+    fairwaysHit: completed.filter(h => h.fairway === 'hit' || h.fairway === 'safe').length,
+    shortSides: completed.filter(h => h.green === 'short-side').length,
+    missedGreens: completed.filter(h => h.green !== null && h.green !== 'hit').length,
+    girHoles: completed.filter(h => h.green === 'hit'),
+    girsTo3Putt: completed.filter(h => h.green === 'hit' && h.putts >= 3).length,
+    attackedHoles: completed.filter(h => h.decision === 'attacked'),
+    attackedToDoubles: completed.filter(h => h.decision === 'attacked' && holeRel(h) >= 2).length,
+    safeHoles: completed.filter(h => h.decision === 'safe'),
+    smartBogeys: completed.filter(h => h.decision === 'safe' && holeRel(h) === 1).length,
+    scrambleAttempts: completed.filter(h => h.green !== null && h.green !== 'hit').length,
+    scrambleSaves: completed.filter(h => h.green !== null && h.green !== 'hit' && holeRel(h) <= 0).length,
+  };
+  return e;
+}
+
+function buildCallouts(r, ev, worst3) {
+  const out = [];
+
+  if (worst3.length > 0) {
+    const w = worst3[0];
+    out.push({
+      tone: 'bad',
+      text: `<b>Worst hole: #${w.idx}</b> (par ${w.par}, ${w.rel >= 0 ? '+' + w.rel : w.rel}). Grinder ${w.g}. ${worst3.length > 1 ? `Two more in the red: #${worst3.slice(1).map(x => x.idx).join(', #')}.` : ''}`.trim()
+    });
+  }
+
+  // GIR but 3-putt away
+  if (ev.girHoles.length >= 4 && ev.girsTo3Putt >= 2) {
+    out.push({
+      tone: 'warn',
+      text: `You hit <b>${ev.girHoles.length} greens</b> in regulation but three-putted <b>${ev.girsTo3Putt}</b> of them. The iron play was there; the putting gave it back.`
+    });
+  } else if (ev.girHoles.length >= 7) {
+    out.push({
+      tone: 'good',
+      text: `<b>${ev.girHoles.length} GIRs</b> — strong iron play today.`
+    });
+  } else if (ev.girHoles.length <= 2 && ev.greensEligible >= 9) {
+    out.push({
+      tone: 'warn',
+      text: `Only <b>${ev.girHoles.length} GIR${ev.girHoles.length === 1 ? '' : 's'}</b> across ${ev.greensEligible} holes. Iron play didn't show up.`
+    });
+  }
+
+  // Short-side problem (call out symptom-cause distinction)
+  if (ev.shortSides >= 2) {
+    const ssSaved = r.holes.filter(h => h.green === 'short-side' && holeRel(h) <= 0).length;
+    out.push({
+      tone: 'bad',
+      text: `Short-sided yourself <b>${ev.shortSides} time${ev.shortSides>1?'s':''}</b>, saved par on <b>${ssSaved}</b>. This is a target-selection problem, not a chipping problem — you were aiming at the pin instead of the fat side of the green.`
+    });
+  }
+
+  // Attack discipline
+  if (ev.attackedHoles.length >= 3) {
+    if (ev.attackedToDoubles >= 2) {
+      out.push({
+        tone: 'bad',
+        text: `You attacked <b>${ev.attackedHoles.length}</b> holes; <b>${ev.attackedToDoubles}</b> ended in double or worse. The old game came along for the ride.`
+      });
+    } else if (ev.attackedToDoubles === 0) {
+      out.push({
+        tone: 'good',
+        text: `Attacked <b>${ev.attackedHoles.length}</b> holes and none blew up. Either disciplined or lucky — log five more rounds before deciding which.`
+      });
+    }
+  }
+
+  // Smart bogey discipline
+  if (ev.smartBogeys >= 4) {
+    out.push({
+      tone: 'good',
+      text: `<b>${ev.smartBogeys} smart bogeys</b> — played safe and made the manageable miss. This is the round structure the system rewards most.`
+    });
+  }
+
+  // Putting
+  if (ev.threePutts >= 3) {
+    out.push({
+      tone: 'bad',
+      text: `<b>${ev.threePutts} three-putts</b> cost you ${ev.threePutts} stroke${ev.threePutts>1?'s':''}. Putting is the single biggest leak today.`
+    });
+  }
+
+  // Penalties
+  if (ev.penalties >= 2) {
+    out.push({
+      tone: 'bad',
+      text: `<b>${ev.penalties} penalty strokes</b> — given away before any recovery shot.`
+    });
+  }
+
+  // Tee shots
+  if (ev.trouble >= 5) {
+    out.push({
+      tone: 'bad',
+      text: `<b>${ev.trouble} trouble tee shots</b> out of ${ev.par45} par 4/5 holes. The driver is leaking strokes — consider benching it for a few rounds and using 3-wood or hybrid off the tee.`
+    });
+  }
+
+  // Scramble
+  if (ev.scrambleAttempts >= 5) {
+    const pct = Math.round(ev.scrambleSaves / ev.scrambleAttempts * 100);
+    if (pct >= 50) {
+      out.push({
+        tone: 'good',
+        text: `Scramble rate <b>${pct}%</b> — short game saved this round.`
+      });
+    } else if (pct < 20) {
+      out.push({
+        tone: 'warn',
+        text: `Scramble rate <b>${pct}%</b> (${ev.scrambleSaves} of ${ev.scrambleAttempts}) — short game didn't bail you out when you needed it.`
+      });
+    }
+  }
+
+  return out.slice(0, 6);
+}
+
+function buildPrescription(ev) {
+  // Symptom-cause matched practice recommendations.
+  // Each rule emits one prescription card. Cap at 3.
+  const items = [];
+
+  // 1. 3-putts dominate → putting practice (clear symptom-cause match)
+  if (ev.threePutts >= 3) {
+    items.push({
+      icon: '◉',
+      title: 'Putting — focus on lag',
+      sub: `${ev.threePutts} three-putts today`,
+      action: `<b>3-Foot Gate Drill</b> (25 in a row, restart on miss) — builds short-putt confidence so lag putts can be lagged.<br><br><b>Ladder Lag</b> (20 / 30 / 40 ft, 3 balls each) — gets distance control back.`
+    });
+  } else if (ev.girHoles.length >= 4 && ev.girsTo3Putt >= 2) {
+    items.push({
+      icon: '◉',
+      title: 'Lag putting',
+      sub: 'Hit greens, gave them back',
+      action: `You hit <b>${ev.girHoles.length} greens</b> but three-putted <b>${ev.girsTo3Putt}</b>. The leak is distance control on first putt. <b>Ladder Lag</b> drill, 20 minutes — 3 balls each from 20 / 30 / 40 ft, target inside a putter length.`
+    });
+  }
+
+  // 2. Short-sides → on-course strategy (NOT chipping practice — that would be wrong)
+  if (ev.shortSides >= 2) {
+    items.push({
+      icon: '⌘',
+      title: 'On-course aim discipline',
+      sub: `${ev.shortSides} short-sides today`,
+      action: `This is <b>not a chipping problem</b> — it's a target-selection problem. For the next 3 rounds, aim at the <b>centre of every green</b>, regardless of where the pin is. Bogey from the centre is fine; double from short-siding the pin is not.`
+    });
+  }
+
+  // 3. Attacked into doubles → decision discipline (also on-course)
+  if (ev.attackedHoles.length >= 3 && ev.attackedToDoubles >= 2) {
+    items.push({
+      icon: '⌘',
+      title: 'Decision discipline',
+      sub: 'Heroic shots cost you',
+      action: `<b>${ev.attackedToDoubles} of ${ev.attackedHoles.length}</b> attacked holes went double-or-worse. Pre-shot question for every approach: <i>"what does the safe miss look like?"</i> If you can't answer in 5 seconds, club down.`
+    });
+  }
+
+  // 4. Trouble tee shots → 3-wood discipline (not range balls)
+  if (ev.trouble >= 4) {
+    items.push({
+      icon: '◇',
+      title: 'Bench the driver',
+      sub: `${ev.trouble} trouble tee shots`,
+      action: `Driver is the most expensive club in the bag today. For the next 5 rounds, hit <b>3-wood or hybrid off every tee</b>. Yes, every tee. Compare your Grinder Card before and after.`
+    });
+  }
+
+  // 5. Penalties → not really a practice thing, more an awareness thing
+  if (ev.penalties >= 2 && items.length < 3) {
+    items.push({
+      icon: '◇',
+      title: 'Penalty awareness',
+      sub: `${ev.penalties} penalty strokes`,
+      action: `Penalties are usually club-selection failures, not swing failures. Before each tee shot, look at where the penalty is — water, OB, fence — and aim deliberately away from it. The strokes saved are free.`
+    });
+  }
+
+  // 6. Iron play weak → wedges + full swing
+  if (ev.girHoles.length <= 2 && ev.greensEligible >= 9 && items.length < 3) {
+    items.push({
+      icon: '◐',
+      title: 'Approach play',
+      sub: 'Few GIRs today',
+      action: `Wedge play needs work, but don't just hit balls — <b>Random Yardage</b> (40–100 yards, different distance every shot) for 20 minutes builds the distance control you're missing.`
+    });
+  }
+
+  if (items.length === 0) {
+    items.push({
+      icon: '○',
+      title: 'No clear leak',
+      sub: 'Round within normal variance',
+      action: `Nothing screamed louder than anything else today. Stick to the <b>70/30 short-game vs full-swing split</b> this week. Don't chase ghosts after a round without a clear pattern.`
+    });
+  }
+
+  return items.slice(0, 3);
+}
+
+function attachDetailHandlers() {
+  const back1 = document.getElementById('detail-back');
+  if (back1) back1.addEventListener('click', closeRoundDetail);
+  const back2 = document.getElementById('detail-back-2');
+  if (back2) back2.addEventListener('click', closeRoundDetail);
+}
+
 
 // =====================================================================
 // VIEW: PRACTICE
@@ -1538,6 +2115,11 @@ function openSessionLog(cat, drillId) {
 // =====================================================================
 function renderStats() {
   const view = document.getElementById('view-stats');
+  if (DETAIL_ROUND_ID && DETAIL_RETURN_TAB === 'stats') {
+    view.innerHTML = renderRoundDetail(DETAIL_ROUND_ID);
+    attachDetailHandlers();
+    return;
+  }
   const ti = trajectoryIndex();
   const history = trajectoryHistory();
   const validRounds = STATE.rounds.filter(r => r.holes.filter(isComplete).length >= (r.totalHoles || 18) * 0.5);
@@ -1639,6 +2221,26 @@ function renderStats() {
       ${totalP ? renderPracticeMix(catTotals, totalP) : `<div class="chart-empty">Log practice sessions to see your mix.</div>`}
     </div>
 
+    ${validRounds.length ? `
+      <h3 class="block-title">Recent Rounds</h3>
+      <div class="tiny" style="margin-bottom: 10px; color: var(--ink-3);">Tap any round to see where it hurt</div>
+      ${[...validRounds].reverse().slice(0, 10).map(r => {
+        const s = roundTotalStrokes(r);
+        const p = roundTotalPar(r);
+        const g = roundGrinderTotal(r);
+        const dt = new Date(r.date);
+        return `
+          <div class="list-item round-list-item" data-detail-id="${r.id}">
+            <div style="flex:1;">
+              <div class="title">${escapeHTML(r.course || 'Untitled')}</div>
+              <div class="meta">${dt.toLocaleDateString()} • ${s} strokes (${s>=p?'+':''}${s-p})</div>
+            </div>
+            <div class="right">${g>=0?'+':''}${g}<span class="sub">Grinder</span></div>
+          </div>
+        `;
+      }).join('')}
+    ` : ''}
+
     <h3 class="block-title">Settings</h3>
     <div class="card">
       <div class="row" style="align-items:center;">
@@ -1679,6 +2281,9 @@ function renderStats() {
   });
 
   document.getElementById('btn-export').addEventListener('click', exportCSV);
+  document.querySelectorAll('#view-stats [data-detail-id]').forEach(el => {
+    el.addEventListener('click', () => openRoundDetail(el.dataset.detailId, 'stats'));
+  });
   document.getElementById('btn-wipe').addEventListener('click', () => {
     openModal(`
       <h3>Erase everything?</h3>
@@ -1768,6 +2373,8 @@ function escapeAttr(s) { return escapeHTML(s); }
 // TAB ROUTING
 // =====================================================================
 function setTab(name) {
+  // Clear detail state on tab switch
+  DETAIL_ROUND_ID = null;
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   const subs = {
