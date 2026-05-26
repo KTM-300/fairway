@@ -68,17 +68,38 @@ work (modern browsers cache aggressively) but it isn't guaranteed. Path A is mor
 ### Round tab
 
 1. Tap **Start New Round**, enter the course name and pick 9 or 18 holes.
-2. On each hole, tap five things:
+2. On each hole, tap the following (in order on screen):
    - **Score** (Birdie+ / Par / Bogey / Double / Triple / +4↑)
    - **Fairway** (Hit / Safe Miss / Trouble) — skipped on par 3s
+   - **Approach Distance** (< 50m / 50–100m / 100–150m / 150m+) — *always asked*
    - **Green** (GIR / Missed Short / Missed Long / Short-Sided)
+   - **Miss Distance** (Just Off / Short Pitch / Way Off) — *only if green missed*
+   - **Recovery** (On & Close / On, Lag Putt / Still Off) — *only if green missed*
    - **Putts** (1 / 2 / 3 / 4+)
    - **Decision** (Played Safe / Attacked)
    - Plus a Yes/No for penalty stroke.
-3. The strip at the top shows your running **Strokes**, **Grinder** score and **Process** score.
-4. The par defaults to a typical pattern — tap **PAR 4 ▾** to cycle through 3 / 4 / 5 for the actual hole.
-5. The **Next Hole** button moves you forward. You can go back with the **‹** arrow if you mis-tapped.
-6. Hit **End Round** when finished — you get a full summary card.
+3. Average load: about 6 taps per hole; missed-green holes ask for 8.
+4. The strip at the top shows your running **Strokes**, **Grinder** score and **Process** score.
+5. The par defaults to a typical pattern — tap **PAR 4 ▾** to cycle through 3 / 4 / 5 for the actual hole.
+6. The **Next Hole** button moves you forward. You can go back with the **‹** arrow if you mis-tapped.
+7. Hit **End Round** when finished — you get a full summary card.
+
+### Short-game diagnostic fields (v3 additions)
+
+Three of the eight per-hole fields above were added specifically to surface short-game leaks:
+
+- **Approach Distance** answers *"from where?"* and powers a GIR-rate-by-distance breakdown
+  in the Stats tab. Long-iron play vs wedge play finally separate cleanly.
+- **Miss Distance** answers *"how badly did you miss?"* A "Just Off" approach is a different
+  failure than a "Way Off" one — one is a chip away, the other is wedge distance control
+  collapsing. The forensics attribute these differently.
+- **Recovery** answers *"did the follow-up save it?"* — separating chip execution from
+  putting under pressure. When the recovery is "On & Close" but the hole still ends in
+  bogey, the leak is the next putt, not the chip.
+
+The Round Detail chain narratives now read like *"Tee shot in play, but the approach from
+50–100 m missed way off, got on but with a long lag putt, and the putting didn't bail you out.
+Approach distance control was the leak."* That's diagnostic, not just descriptive.
 
 ### Practice tab
 
