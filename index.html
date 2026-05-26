@@ -895,7 +895,10 @@ function blankHole(par) {
     score: null,           // 'birdie-better' | 'par' | 'bogey' | 'double' | 'triple' | 'worse'
     rawStrokes: null,      // actual strokes (computed or manual for worse)
     fairway: null,         // 'hit' | 'safe' | 'trouble' | null (par 3 = null)
+    approachDist: null,    // '<50' | '50-100' | '100-150' | '150+' | null
     green: null,           // 'hit' | 'short' | 'long' | 'short-side'
+    missDist: null,        // 'just-off' | 'short-pitch' | 'way-off' | null (only when green missed)
+    recovery: null,        // 'on-close' | 'on-lag' | 'still-off' | null (only when green missed)
     putts: null,           // 1, 2, 3, 4
     decision: null,        // 'safe' | 'attacked'
     penalty: false         // optional flag
@@ -1429,7 +1432,17 @@ function renderHoleEntry() {
       ${choiceBtn('fairway', 'trouble', 'Trouble', 'OB / hazard', h, 'danger')}
     </div>`}
 
-    <div class="label"><span>3 — Green</span><span class="tiny">${h.green || 'tap one'}</span></div>
+    <div class="label"><span>3 — Approach Distance</span><span class="tiny">${h.approachDist ? approachDistLabel(h.approachDist) : 'tap one'}</span></div>
+    <div class="choices" style="--cols: 2;">
+      ${choiceBtn('approachDist', '<50', '< 50 m', 'short pitch', h)}
+      ${choiceBtn('approachDist', '50-100', '50–100 m', 'wedge zone', h)}
+    </div>
+    <div class="choices mt-8" style="--cols: 2;">
+      ${choiceBtn('approachDist', '100-150', '100–150 m', '9i to 7i', h)}
+      ${choiceBtn('approachDist', '150+', '150 m +', 'mid-iron+', h)}
+    </div>
+
+    <div class="label"><span>4 — Green</span><span class="tiny">${h.green || 'tap one'}</span></div>
     <div class="choices" style="--cols: 2;">
       ${choiceBtn('green', 'hit', 'GIR', 'green in reg.', h)}
       ${choiceBtn('green', 'short', 'Missed Short', 'or front', h, 'warn')}
@@ -1439,7 +1452,28 @@ function renderHoleEntry() {
       ${choiceBtn('green', 'short-side', 'Short-Sided', 'wrong side', h, 'danger')}
     </div>
 
-    <div class="label"><span>4 — Putts</span><span class="tiny">${h.putts !== null ? h.putts + ' putts' : 'tap one'}</span></div>
+    ${greenMissed(h) ? `
+    <div class="label"><span>5 — Miss Distance</span><span class="tiny">${h.missDist ? missDistLabel(h.missDist) : 'tap one'}</span></div>
+    <div class="choices" style="--cols: 3;">
+      ${choiceBtn('missDist', 'just-off', 'Just Off', 'within ~5 m', h)}
+      ${choiceBtn('missDist', 'short-pitch', 'Short Pitch', '5–15 m', h, 'warn')}
+      ${choiceBtn('missDist', 'way-off', 'Way Off', '15 m +', h, 'danger')}
+    </div>
+
+    <div class="label"><span>6 — Recovery</span><span class="tiny">${h.recovery ? recoveryLabel(h.recovery) : 'tap one'}</span></div>
+    <div class="choices" style="--cols: 3;">
+      ${choiceBtn('recovery', 'on-close', 'On & Close', '~3 m of cup', h)}
+      ${choiceBtn('recovery', 'on-lag', 'On, Lag Putt', 'long putt left', h, 'warn')}
+      ${choiceBtn('recovery', 'still-off', 'Still Off', 'missed again', h, 'danger')}
+    </div>
+    ` : (h.green === 'hit' ? `
+    <div class="label"><span>5 — Miss Distance</span><span class="tiny">n/a · green hit</span></div>
+    <div class="card" style="text-align:center; padding:10px; color:var(--ink-3); font-style:italic; font-family:Georgia,serif; font-size:13px;">Not scored when GIR</div>
+    <div class="label"><span>6 — Recovery</span><span class="tiny">n/a · green hit</span></div>
+    <div class="card" style="text-align:center; padding:10px; color:var(--ink-3); font-style:italic; font-family:Georgia,serif; font-size:13px;">Not scored when GIR</div>
+    ` : '')}
+
+    <div class="label"><span>7 — Putts</span><span class="tiny">${h.putts !== null ? h.putts + ' putts' : 'tap one'}</span></div>
     <div class="choices" style="--cols: 4;">
       ${puttsBtn(1, h)}
       ${puttsBtn(2, h)}
@@ -1447,7 +1481,7 @@ function renderHoleEntry() {
       ${puttsBtn(4, h, 'danger')}
     </div>
 
-    <div class="label"><span>5 — Decision</span><span class="tiny">${h.decision || 'tap one'}</span></div>
+    <div class="label"><span>8 — Decision</span><span class="tiny">${h.decision || 'tap one'}</span></div>
     <div class="choices" style="--cols: 2;">
       ${choiceBtn('decision', 'safe', 'Played Safe', 'conservative', h)}
       ${choiceBtn('decision', 'attacked', 'Attacked', 'went for it', h, 'warn')}
@@ -1482,6 +1516,35 @@ function scoreLabel(s) {
     'triple': 'Triple bogey',
     'worse': '+4 or worse'
   })[s] || '';
+}
+
+function approachDistLabel(d) {
+  return ({
+    '<50': '< 50 m',
+    '50-100': '50–100 m',
+    '100-150': '100–150 m',
+    '150+': '150 m +'
+  })[d] || '';
+}
+
+function missDistLabel(m) {
+  return ({
+    'just-off': 'just off',
+    'short-pitch': 'short pitch',
+    'way-off': 'way off'
+  })[m] || '';
+}
+
+function recoveryLabel(r) {
+  return ({
+    'on-close': 'on & close',
+    'on-lag': 'on, lag putt',
+    'still-off': 'still off'
+  })[r] || '';
+}
+
+function greenMissed(h) {
+  return h.green !== null && h.green !== 'hit';
 }
 
 function scoreBtn(value, label, sub, h, tone) {
@@ -1539,11 +1602,16 @@ function attachHoleHandlers() {
     });
   });
 
-  // Fairway / Green / Decision generic
+  // Fairway / Green / Decision / Approach / Miss / Recovery generic
   document.querySelectorAll('[data-field]').forEach(b => {
     b.addEventListener('click', () => {
       const f = b.dataset.field;
       h[f] = b.dataset.value;
+      // If green becomes 'hit', clear the conditional miss/recovery fields
+      if (f === 'green' && h.green === 'hit') {
+        h.missDist = null;
+        h.recovery = null;
+      }
       save(); renderRound();
     });
   });
@@ -1838,8 +1906,51 @@ function analyzeRound(r) {
     smartBogeys: completed.filter(h => h.decision === 'safe' && holeRel(h) === 1).length,
     scrambleAttempts: completed.filter(h => h.green !== null && h.green !== 'hit').length,
     scrambleSaves: completed.filter(h => h.green !== null && h.green !== 'hit' && holeRel(h) <= 0).length,
+    // New approach-distance / miss-distance / recovery aggregates (v3 fields)
+    holesByApproachDist: {
+      '<50':     completed.filter(h => h.approachDist === '<50'),
+      '50-100':  completed.filter(h => h.approachDist === '50-100'),
+      '100-150': completed.filter(h => h.approachDist === '100-150'),
+      '150+':    completed.filter(h => h.approachDist === '150+')
+    },
+    missedHoles:  completed.filter(h => h.green !== null && h.green !== 'hit' && h.missDist),
+    wayOffMisses: completed.filter(h => h.missDist === 'way-off').length,
+    shortPitchMisses: completed.filter(h => h.missDist === 'short-pitch').length,
+    justOffMisses: completed.filter(h => h.missDist === 'just-off').length,
+    recoveryStillOff: completed.filter(h => h.recovery === 'still-off').length,
+    recoveryOnLag:    completed.filter(h => h.recovery === 'on-lag').length,
+    recoveryOnClose:  completed.filter(h => h.recovery === 'on-close').length,
+    // GIR rate per distance band (only counts holes with approachDist set AND green tagged)
+    girByDist: {
+      '<50':     girRateForDist(completed, '<50'),
+      '50-100':  girRateForDist(completed, '50-100'),
+      '100-150': girRateForDist(completed, '100-150'),
+      '150+':    girRateForDist(completed, '150+')
+    }
   };
   return e;
+}
+
+// Helper: GIR rate (0..100, or null if no eligible holes) for a given approach band.
+function girRateForDist(completed, band) {
+  const eligible = completed.filter(h => h.approachDist === band && h.green !== null);
+  if (eligible.length === 0) return null;
+  const hit = eligible.filter(h => h.green === 'hit').length;
+  return Math.round(hit / eligible.length * 100);
+}
+
+// Helper: find the distance band with the lowest GIR rate (requires at
+// least 2 attempted holes in that band). Returns {band, pct} or null.
+function findWeakestBand(girByDist) {
+  let weakest = null;
+  ['<50', '50-100', '100-150', '150+'].forEach(band => {
+    const pct = girByDist[band];
+    if (pct === null) return;
+    if (weakest === null || pct < weakest.pct) weakest = { band, pct };
+  });
+  // Only return if the rate is meaningfully poor (< 40%)
+  if (weakest && weakest.pct < 40) return weakest;
+  return null;
 }
 
 // =====================================================================
@@ -1990,23 +2101,41 @@ function renderForensicHole(a) {
 function buildChainNarrative(a) {
   // Write a one-line story of how the hole came apart, in plain English.
   const ego = a.ego ? ' (attacked)' : '';
+  const h = a.h;
 
   if (a.primary === 'unknown') {
     return `Score recorded as ${scoreLabel(a.score).toLowerCase()} but the five taps don't show a clear chain. Worth a memory check.`;
   }
 
+  // Distance band fragment, used when the approach is the primary or
+  // when the chain involves the approach at all. Empty string if missing.
+  const distLabel = h.approachDist ? approachDistLabel(h.approachDist) : '';
+  const fromDist = distLabel ? ` from <b>${distLabel}</b>` : '';
+
+  // Miss-distance fragment
+  let missFrag = '';
+  if (h.missDist === 'just-off')    missFrag = ' just off the green';
+  else if (h.missDist === 'short-pitch') missFrag = ' <b>5–15 m short</b>';
+  else if (h.missDist === 'way-off') missFrag = ' <b>way off</b> (15 m+)';
+
+  // Recovery fragment (only used as a "then..." follow-up)
+  let recoveryFrag = '';
+  if (h.recovery === 'on-close')     recoveryFrag = 'chipped to within 3 m';
+  else if (h.recovery === 'on-lag')  recoveryFrag = 'got on but with a long lag putt';
+  else if (h.recovery === 'still-off') recoveryFrag = '<b>missed the green again</b> with the chip';
+
   // Build sequence
   const parts = [];
   if (a.primary === 'tee') {
     parts.push(`Tee shot found <b>trouble</b>${ego}`);
-  } else if (a.primary === 'penalty' && a.h.par > 3) {
+  } else if (a.primary === 'penalty' && h.par > 3) {
     parts.push(`Penalty stroke taken (likely off the tee${ego})`);
   } else if (a.primary === 'penalty') {
     parts.push(`Penalty stroke taken${ego}`);
   } else if (a.primary === 'approach') {
-    parts.push(`Tee shot in play, but the <b>approach missed</b> the green${ego}`);
+    parts.push(`Tee shot in play, but the <b>approach${fromDist}</b> missed${missFrag}${ego}`);
   } else if (a.primary === 'shortside') {
-    parts.push(`Tee shot in play, then approach <b>short-sided</b>${ego}`);
+    parts.push(`Tee shot in play, then approach${fromDist} <b>short-sided</b>${missFrag}${ego}`);
   } else if (a.primary === 'putting') {
     parts.push(`Reached the green in regulation, then <b>three-putted</b>`);
   }
@@ -2018,6 +2147,11 @@ function buildChainNarrative(a) {
   if (a.secondary.includes('approach') && a.primary !== 'approach' && !a.secondary.includes('shortside')) {
     parts.push('the chip / approach didn\'t save it');
   }
+  // Recovery detail — only mention if the recovery field is populated and
+  // not already implicit in the primary chain
+  if (recoveryFrag && a.primary !== 'putting') {
+    parts.push(recoveryFrag);
+  }
   if (a.secondary.includes('putting') && a.primary !== 'putting') {
     parts.push('and the putting didn\'t bail you out');
   }
@@ -2025,7 +2159,9 @@ function buildChainNarrative(a) {
     parts.push('compounded by a penalty stroke');
   }
 
-  // Closing line — the "why" of this double in one sentence
+  // Closing line — the "why" of this double in one sentence.
+  // Refined: when we have miss-distance / recovery detail, use it to point
+  // to the actual sub-leak rather than the generic "approach was the leak."
   let closer;
   if (a.primary === 'tee') {
     closer = `Started with the <b>tee shot</b>.`;
@@ -2034,7 +2170,18 @@ function buildChainNarrative(a) {
   } else if (a.primary === 'shortside') {
     closer = `Aim was on the <b>pin</b>, not the fat side of the green.`;
   } else if (a.primary === 'approach') {
-    closer = `<b>Approach</b> was the leak.`;
+    // Sub-leak refinement based on miss + recovery
+    if (h.missDist === 'way-off') {
+      closer = `<b>Approach distance control</b> was the leak — missed by more than 15 m.`;
+    } else if (h.recovery === 'still-off') {
+      closer = `Approach missed AND recovery missed — <b>short-game execution</b> was the leak.`;
+    } else if (h.recovery === 'on-lag' && h.putts >= 2) {
+      closer = `<b>Lag putting</b> from the recovery shot was the leak.`;
+    } else if (h.missDist === 'just-off' && h.recovery === 'on-close' && h.putts >= 2) {
+      closer = `Recovery got close — <b>short putting</b> was the leak.`;
+    } else {
+      closer = `<b>Approach</b> was the leak.`;
+    }
   } else if (a.primary === 'putting') {
     closer = `<b>Putting</b> gave back what the irons earned.`;
   } else {
@@ -2205,7 +2352,51 @@ function buildCallouts(r, ev, worst3) {
     }
   }
 
-  return out.slice(0, 6);
+  // NEW: Approach distance — find the weakest band (only if data available)
+  const bandsWithData = ['<50','50-100','100-150','150+'].filter(b => ev.girByDist[b] !== null);
+  if (bandsWithData.length >= 2) {
+    const weak = findWeakestBand(ev.girByDist);
+    const strong = bandsWithData.reduce((best, b) =>
+      (best === null || ev.girByDist[b] > ev.girByDist[best]) ? b : best, null);
+    if (weak && strong && weak.band !== strong) {
+      out.push({
+        tone: 'warn',
+        text: `GIR rate dropped sharply by distance: <b>${ev.girByDist[strong]}%</b> from ${approachDistLabel(strong)} but only <b>${weak.pct}%</b> from ${approachDistLabel(weak.band)}. The weak band is where the wedge work needs to go.`
+      });
+    }
+  }
+
+  // NEW: Way-off miss frequency
+  if (ev.wayOffMisses >= 2) {
+    out.push({
+      tone: 'bad',
+      text: `<b>${ev.wayOffMisses} approaches missed by 15 m+</b>. That's a distance-control failure on the approach, not a strategy problem. The shot itself isn't repeating.`
+    });
+  } else if (ev.justOffMisses >= 4 && ev.wayOffMisses === 0) {
+    out.push({
+      tone: 'good',
+      text: `<b>${ev.justOffMisses} 'just off' misses</b> with zero way-off misses — your approach distance control is steady; misses are close.`
+    });
+  }
+
+  // NEW: Recovery game leaks
+  const recoveryAttempts = ev.recoveryStillOff + ev.recoveryOnLag + ev.recoveryOnClose;
+  if (recoveryAttempts >= 4) {
+    if (ev.recoveryStillOff >= 2) {
+      out.push({
+        tone: 'bad',
+        text: `Chip / pitch missed the green again on <b>${ev.recoveryStillOff}</b> of <b>${recoveryAttempts}</b> recoveries. Short-game execution didn't show up.`
+      });
+    } else if (ev.recoveryOnClose >= 3 && ev.threePutts >= 2) {
+      // Identify the surprising leak — chips were good, putts gave it back
+      out.push({
+        tone: 'warn',
+        text: `Recovery got you to <b>~3 m on ${ev.recoveryOnClose} hole${ev.recoveryOnClose>1?'s':''}</b>, but you 3-putted <b>${ev.threePutts}</b>. The chips did their job; the putting under pressure didn't.`
+      });
+    }
+  }
+
+  return out.slice(0, 7);
 }
 
 function buildPrescription(ev) {
@@ -2260,7 +2451,52 @@ function buildPrescription(ev) {
     });
   }
 
-  // 5. Penalties → not really a practice thing, more an awareness thing
+  // 5. NEW: Way-off wedge misses → wedge distance control
+  if (ev.wayOffMisses >= 2) {
+    // Count where the way-off misses came from
+    const wayOffByBand = { '<50': 0, '50-100': 0, '100-150': 0, '150+': 0 };
+    ev.missedHoles.forEach(h => {
+      if (h.missDist === 'way-off' && h.approachDist) wayOffByBand[h.approachDist]++;
+    });
+    const wedgeWayOffs = wayOffByBand['<50'] + wayOffByBand['50-100'];
+    const ironWayOffs = wayOffByBand['100-150'] + wayOffByBand['150+'];
+    if (wedgeWayOffs >= ironWayOffs && wedgeWayOffs >= 2) {
+      items.push({
+        icon: '◐',
+        title: 'Wedge distance control',
+        sub: `${wedgeWayOffs} way-off misses inside 100 m`,
+        action: `Inside 100 m you missed by <b>15 m+</b> on ${wedgeWayOffs} hole${wedgeWayOffs>1?'s':''}. That's a distance-control failure, not a direction failure. <b>Clock-Face Ladder</b> drill — 7:30 / 9:00 / 10:30 swings with each wedge, learn the actual yardage of each position. Then <b>Random Yardage</b> (40–100 m) to test under randomized recall.`
+      });
+    } else if (ironWayOffs >= 2) {
+      items.push({
+        icon: '◐',
+        title: 'Iron distance control',
+        sub: `${ironWayOffs} way-off misses beyond 100 m`,
+        action: `Beyond 100 m you missed by <b>15 m+</b> on ${ironWayOffs} hole${ironWayOffs>1?'s':''}. Likely a strike-quality issue, not a club-selection one. <b>Block — Slow Iron</b> (15 balls max, slow rehearsals) before any random work this week.`
+      });
+    }
+  }
+
+  // 6. NEW: Bad recovery rate → up-and-down work, but distinguish symptom from cause
+  const recoveryAttempts = ev.recoveryStillOff + ev.recoveryOnLag + ev.recoveryOnClose;
+  if (recoveryAttempts >= 4 && ev.recoveryStillOff >= 2 && items.length < 3) {
+    items.push({
+      icon: '⌖',
+      title: 'Chip execution',
+      sub: `${ev.recoveryStillOff} of ${recoveryAttempts} recoveries still off the green`,
+      action: `Your chip / pitch didn't get on the green on <b>${ev.recoveryStillOff}</b> of <b>${recoveryAttempts}</b> attempts. This is execution, not strategy. <b>Worst-Lie Practice</b> + <b>One-Club Challenge</b> (56°) — focus on consistent contact from awkward lies before chasing finesse.`
+    });
+  } else if (recoveryAttempts >= 4 && ev.recoveryOnClose >= 3 && ev.threePutts >= 2 && items.length < 3) {
+    // Recovery is fine, but putting under pressure is failing
+    items.push({
+      icon: '◉',
+      title: 'Pressure putting',
+      sub: `${ev.recoveryOnClose} recoveries to ~3 m, then ${ev.threePutts} 3-putts`,
+      action: `The chip game saved you — got you to ~3 m on ${ev.recoveryOnClose} holes — but the putting then gave it back. <b>3-Foot Gate Drill</b> (25 in a row, restart on miss). The pressure isn't on the chip; it's on the next putt.`
+    });
+  }
+
+  // 7. Penalties → not really a practice thing, more an awareness thing
   if (ev.penalties >= 2 && items.length < 3) {
     items.push({
       icon: '◇',
@@ -2270,14 +2506,27 @@ function buildPrescription(ev) {
     });
   }
 
-  // 6. Iron play weak → wedges + full swing
+  // 8. NEW: Iron play weak with distance-band breakdown
   if (ev.girHoles.length <= 2 && ev.greensEligible >= 9 && items.length < 3) {
-    items.push({
-      icon: '◐',
-      title: 'Approach play',
-      sub: 'Few GIRs today',
-      action: `Wedge play needs work, but don't just hit balls — <b>Random Yardage</b> (40–100 yards, different distance every shot) for 20 minutes builds the distance control you're missing.`
-    });
+    // Use band breakdown if available
+    const weakBand = findWeakestBand(ev.girByDist);
+    if (weakBand) {
+      items.push({
+        icon: '◐',
+        title: 'Approach play — weakest distance',
+        sub: `${weakBand.pct}% GIR from ${approachDistLabel(weakBand.band)}`,
+        action: `Your weakest approach distance today was <b>${approachDistLabel(weakBand.band)}</b> at just ${weakBand.pct}% GIR. ${weakBand.band === '<50' || weakBand.band === '50-100' ?
+          '<b>Random Yardage</b> drill (40–100 m, different distance every ball) for 20 minutes builds the distance control this band needs.' :
+          '<b>Block — Slow Iron</b> + <b>Random Club Random Target</b>. Don\'t just hit balls; hit different clubs to different targets.'}`
+      });
+    } else {
+      items.push({
+        icon: '◐',
+        title: 'Approach play',
+        sub: 'Few GIRs today',
+        action: `Wedge play needs work, but don't just hit balls — <b>Random Yardage</b> (40–100 m, different distance every shot) for 20 minutes builds the distance control you're missing.`
+      });
+    }
   }
 
   if (items.length === 0) {
@@ -2577,6 +2826,8 @@ function renderStats() {
       ${dmgVals.length ? barChart(dmgVals, grindLabels, { posColor: '#c84545' }) : `<div class="chart-empty">No rounds yet.</div>`}
     </div>
 
+    ${renderShortGameCharts(validRounds)}
+
     <div class="chart-wrap">
       <h4>Practice Mix · 28 days</h4>
       <div class="chart-sub">Target 70% in the three short-game blocks</div>
@@ -2663,6 +2914,160 @@ function renderStats() {
   });
 }
 
+function renderShortGameCharts(rounds) {
+  // Aggregate the new approach-distance / miss / recovery data across rounds.
+  // Only render charts when we have at least 5 holes of meaningful data —
+  // below that, the chart would just be noise.
+
+  // 1. GIR rate by distance band — aggregated across all logged rounds
+  const bandCounts = {
+    '<50':     { hit: 0, total: 0 },
+    '50-100':  { hit: 0, total: 0 },
+    '100-150': { hit: 0, total: 0 },
+    '150+':    { hit: 0, total: 0 }
+  };
+
+  // 2. Miss-distance distribution across rounds
+  const missCounts = { 'just-off': 0, 'short-pitch': 0, 'way-off': 0 };
+  let totalMissesTagged = 0;
+
+  // 3. Recovery distribution across rounds
+  const recCounts = { 'on-close': 0, 'on-lag': 0, 'still-off': 0 };
+  let totalRecTagged = 0;
+
+  rounds.forEach(r => {
+    r.holes.filter(isComplete).forEach(h => {
+      if (h.approachDist && h.green !== null) {
+        if (bandCounts[h.approachDist]) {
+          bandCounts[h.approachDist].total++;
+          if (h.green === 'hit') bandCounts[h.approachDist].hit++;
+        }
+      }
+      if (h.missDist) { missCounts[h.missDist]++; totalMissesTagged++; }
+      if (h.recovery) { recCounts[h.recovery]++; totalRecTagged++; }
+    });
+  });
+
+  const totalDistTagged = Object.values(bandCounts).reduce((s, b) => s + b.total, 0);
+  if (totalDistTagged < 5 && totalMissesTagged < 3 && totalRecTagged < 3) {
+    // Not enough new-format data yet — show a soft placeholder
+    return `
+      <div class="chart-wrap">
+        <h4>Short-Game Detail</h4>
+        <div class="chart-sub">Approach distance · miss size · recovery</div>
+        <div class="chart-empty">Log 3–5 rounds with the new fields to see short-game breakdown.</div>
+      </div>
+    `;
+  }
+
+  let html = '';
+
+  // === Chart 1: GIR rate by distance band ===
+  if (totalDistTagged >= 5) {
+    const bands = ['<50', '50-100', '100-150', '150+'];
+    const labels = bands.map(b => approachDistLabel(b).replace(' m', 'm'));
+    const pcts = bands.map(b => bandCounts[b].total === 0 ? 0
+                                : Math.round(bandCounts[b].hit / bandCounts[b].total * 100));
+    const counts = bands.map(b => bandCounts[b].total);
+
+    // Use a custom bar layout with both the % and the n inside each bar
+    const maxPct = 100;
+    const barRows = bands.map((b, i) => {
+      const pct = pcts[i];
+      const n = counts[i];
+      const barWidth = n === 0 ? 0 : (pct / maxPct) * 100;
+      const color = pct >= 50 ? 'var(--good)' : pct >= 30 ? 'var(--warn)' : 'var(--bad)';
+      return `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <div style="width: 72px; flex-shrink:0; font-size: 13px; font-weight: 600; color: var(--ink-2); text-align:right;">${labels[i]}</div>
+          <div style="flex:1; height: 22px; background: var(--bg); border-radius: 4px; position:relative; overflow:hidden; border: 1px solid var(--line);">
+            ${n === 0 ? '' : `<div style="position:absolute; left:0; top:0; bottom:0; width:${barWidth}%; background:${color}; border-radius:3px 0 0 3px;"></div>`}
+            <div style="position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size: 12px; font-weight: 700; color: var(--ink);">
+              ${n === 0 ? '<span style="color:var(--ink-3); font-weight:500; font-style:italic;">no data</span>' : `${pct}%`}
+            </div>
+          </div>
+          <div style="width: 50px; flex-shrink:0; font-size: 11px; color: var(--ink-3); text-align:left;">n=${n}</div>
+        </div>
+      `;
+    }).join('');
+
+    html += `
+      <div class="chart-wrap">
+        <h4>GIR Rate by Approach Distance</h4>
+        <div class="chart-sub">Where the green-hitting actually happens</div>
+        ${barRows}
+      </div>
+    `;
+  }
+
+  // === Chart 2: Miss distance distribution ===
+  if (totalMissesTagged >= 3) {
+    const items = [
+      { k: 'just-off', name: 'Just Off (~5 m)', color: 'var(--good)' },
+      { k: 'short-pitch', name: 'Short Pitch (5–15 m)', color: 'var(--warn)' },
+      { k: 'way-off', name: 'Way Off (15 m +)', color: 'var(--bad)' }
+    ];
+    html += `
+      <div class="chart-wrap">
+        <h4>Miss Size · all rounds</h4>
+        <div class="chart-sub">Where the approach failures end up · ${totalMissesTagged} tagged miss${totalMissesTagged === 1 ? '' : 'es'}</div>
+        <div style="height: 28px; display:flex; border-radius:6px; overflow:hidden; border:1px solid var(--line);">
+          ${items.map(it => {
+            const pct = missCounts[it.k] / totalMissesTagged * 100;
+            return pct > 0 ? `<div style="background:${it.color}; flex: ${pct};"></div>` : '';
+          }).join('')}
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+          ${items.map(it => `
+            <div style="font-size: 11px;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <div style="width:10px; height:10px; background:${it.color}; border-radius:2px;"></div>
+                <span style="color: var(--ink-2);">${it.name}</span>
+              </div>
+              <div style="font-family:Georgia,serif; font-weight: 800; font-size: 18px; margin-top: 4px;">${Math.round(missCounts[it.k] / totalMissesTagged * 100)}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // === Chart 3: Recovery outcome distribution ===
+  if (totalRecTagged >= 3) {
+    const items = [
+      { k: 'on-close', name: 'On & Close', color: 'var(--good)' },
+      { k: 'on-lag', name: 'On, Lag Putt', color: 'var(--warn)' },
+      { k: 'still-off', name: 'Still Off', color: 'var(--bad)' }
+    ];
+    const closeRate = totalRecTagged > 0 ? Math.round(recCounts['on-close'] / totalRecTagged * 100) : 0;
+    html += `
+      <div class="chart-wrap">
+        <h4>Recovery Outcomes · all rounds</h4>
+        <div class="chart-sub">Where the chip / pitch ended up · ${totalRecTagged} tagged · ${closeRate}% close</div>
+        <div style="height: 28px; display:flex; border-radius:6px; overflow:hidden; border:1px solid var(--line);">
+          ${items.map(it => {
+            const pct = recCounts[it.k] / totalRecTagged * 100;
+            return pct > 0 ? `<div style="background:${it.color}; flex: ${pct};"></div>` : '';
+          }).join('')}
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+          ${items.map(it => `
+            <div style="font-size: 11px;">
+              <div style="display:flex; align-items:center; gap: 6px;">
+                <div style="width:10px; height:10px; background:${it.color}; border-radius:2px;"></div>
+                <span style="color: var(--ink-2);">${it.name}</span>
+              </div>
+              <div style="font-family:Georgia,serif; font-weight: 800; font-size: 18px; margin-top: 4px;">${Math.round(recCounts[it.k] / totalRecTagged * 100)}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  return html;
+}
+
 function renderPracticeMix(totals, total) {
   const items = [
     { k: 'putting', name: 'Putting', color: '#9bc34a' },
@@ -2691,7 +3096,7 @@ function renderPracticeMix(totals, total) {
 }
 
 function exportCSV() {
-  let csv = 'TYPE,DATE,COURSE,HOLE,PAR,SCORE,STROKES,FAIRWAY,GREEN,PUTTS,DECISION,PENALTY,HOLE_GRINDER,HOLE_PROCESS\n';
+  let csv = 'TYPE,DATE,COURSE,HOLE,PAR,SCORE,STROKES,FAIRWAY,APPROACH_DIST,GREEN,MISS_DIST,RECOVERY,PUTTS,DECISION,PENALTY,HOLE_GRINDER,HOLE_PROCESS\n';
   STATE.rounds.forEach(r => {
     r.holes.forEach((h, i) => {
       if (!isComplete(h)) return;
@@ -2700,7 +3105,9 @@ function exportCSV() {
         new Date(r.date).toISOString().slice(0,10),
         '"' + (r.course || '').replace(/"/g,'""') + '"',
         i+1, h.par, scoreLabel(h.score), holeStrokes(h),
-        h.fairway || '', h.green || '', h.putts !== null ? h.putts : '',
+        h.fairway || '', h.approachDist || '', h.green || '',
+        h.missDist || '', h.recovery || '',
+        h.putts !== null ? h.putts : '',
         h.decision || '', h.penalty ? 'yes' : 'no',
         holeGrinder(h), holeProcess(h) ?? ''
       ].join(',') + '\n';
